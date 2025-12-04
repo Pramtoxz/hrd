@@ -3,6 +3,7 @@
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\ShareMenus;
+use App\Http\Middleware\CheckMenuAccess;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -22,6 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleInertiaRequests::class,
             ShareMenus::class,
             AddLinkHeadersForPreloadedAssets::class,
+        ]);
+
+        $middleware->alias([
+            'check.menu.access' => CheckMenuAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

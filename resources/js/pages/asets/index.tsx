@@ -9,23 +9,29 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { Plus, Pencil, Trash2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { useState, useEffect } from 'react';
 
-interface User {
+interface Aset {
     id: number;
-    name: string;
-    email: string;
-    user_level?: {
-        id: number;
-        nama_level: string;
-    };
-    created_at: string;
+    kode_aset: string;
+    nama_aset: string;
+    pemilik_aset: string;
+    kritikalitas: string;
+    lokasi: string;
+    status: string;
+    tanggal_perolehan: string;
 }
 
 interface PaginationLink {
@@ -35,8 +41,8 @@ interface PaginationLink {
 }
 
 interface Props {
-    users: {
-        data: User[];
+    asets: {
+        data: Aset[];
         current_page: number;
         last_page: number;
         per_page: number;
@@ -50,15 +56,36 @@ interface Props {
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Users', href: '/users' },
+    { title: 'Aset', href: '/asets' },
 ];
 
-export default function UsersIndex({ users, filters }: Props) {
+const getKritikalitasColor = (kritikalitas: string) => {
+    switch (kritikalitas) {
+        case 'Kritis': return 'destructive';
+        case 'Tinggi': return 'default';
+        case 'Sedang': return 'secondary';
+        case 'Rendah': return 'outline';
+        default: return 'secondary';
+    }
+};
+
+const getStatusColor = (status: string) => {
+    switch (status) {
+        case 'Aktif': return 'default';
+        case 'Maintenance': return 'secondary';
+        case 'Rusak': return 'destructive';
+        case 'Dihapus': return 'outline';
+        default: return 'secondary';
+    }
+};
+
+export default function AsetsIndex({ asets, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
+    const [previewImage, setPreviewImage] = useState<{ url: string; name: string } | null>(null);
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-            router.get('/users', { search }, {
+            router.get('/asets', { search }, {
                 preserveState: true,
                 replace: true,
             });
@@ -70,7 +97,7 @@ export default function UsersIndex({ users, filters }: Props) {
     const handleDelete = async (id: number, name: string) => {
         const result = await Swal.fire({
             title: 'Konfirmasi Hapus',
-            text: `Apakah Anda yakin ingin menghapus user "${name}"?`,
+            text: `Apakah Anda yakin ingin menghapus aset "${name}"?`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
@@ -80,12 +107,12 @@ export default function UsersIndex({ users, filters }: Props) {
         });
 
         if (result.isConfirmed) {
-            router.delete(`/users/${id}`, {
+            router.delete(`/asets/${id}`, {
                 onSuccess: () => {
                     toast.success(`${name} berhasil dihapus`);
                 },
                 onError: () => {
-                    toast.error('Gagal menghapus user');
+                    toast.error('Gagal menghapus aset');
                 },
             });
         }
@@ -93,19 +120,19 @@ export default function UsersIndex({ users, filters }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Users" />
+            <Head title="Aset" />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold">Users</h1>
+                        <h1 className="text-2xl font-bold">Manajemen Aset</h1>
                         <p className="text-sm text-muted-foreground">
-                            Total: {users.total} users
+                            Total: {asets.total} aset
                         </p>
                     </div>
                     <Button asChild>
-                        <Link href="/users/create">
+                        <Link href="/asets/create">
                             <Plus className="mr-2 h-4 w-4" />
-                            Tambah User
+                            Tambah Aset
                         </Link>
                     </Button>
                 </div>
@@ -115,7 +142,7 @@ export default function UsersIndex({ users, filters }: Props) {
                     <div className="relative flex-1 max-w-sm">
                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
-                            placeholder="Cari nama, email, atau level..."
+                            placeholder="Cari kode, nama, pemilik, atau lokasi..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="pl-9"
@@ -127,36 +154,75 @@ export default function UsersIndex({ users, filters }: Props) {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Nama</TableHead>
-                                <TableHead>Email</TableHead>
-                                <TableHead>Level</TableHead>
+                                <TableHead>Foto</TableHead>
+                                <TableHead>Kode Aset</TableHead>
+                                <TableHead>Nama Aset</TableHead>
+                                <TableHead>Pemilik</TableHead>
+                                <TableHead>Lokasi</TableHead>
+                                <TableHead>Kritikalitas</TableHead>
+                                <TableHead>Status</TableHead>
                                 <TableHead className="text-right">Aksi</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {users.data.length > 0 ? (
-                                users.data.map((user) => (
-                                    <TableRow key={user.id}>
-                                        <TableCell className="font-medium">{user.name}</TableCell>
-                                        <TableCell>{user.email}</TableCell>
+                            {asets.data.length > 0 ? (
+                                asets.data.map((aset: any) => (
+                                    <TableRow key={aset.id}>
                                         <TableCell>
-                                            {user.user_level ? (
-                                                <Badge variant="secondary">{user.user_level.nama_level}</Badge>
+                                            {aset.foto_aset ? (
+                                                <div className="relative group">
+                                                    <img 
+                                                        src={`/assets/images/foto_aset/${aset.foto_aset}`} 
+                                                        alt={aset.nama_aset}
+                                                        className="h-12 w-12 object-cover rounded border cursor-pointer hover:opacity-80 transition-opacity"
+                                                        onClick={() => setPreviewImage({
+                                                            url: `/assets/images/foto_aset/${aset.foto_aset}`,
+                                                            name: aset.nama_aset
+                                                        })}
+                                                    />
+                                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 rounded cursor-pointer"
+                                                        onClick={() => setPreviewImage({
+                                                            url: `/assets/images/foto_aset/${aset.foto_aset}`,
+                                                            name: aset.nama_aset
+                                                        })}>
+                                                        <ZoomIn className="h-5 w-5 text-white" />
+                                                    </div>
+                                                </div>
                                             ) : (
-                                                <Badge variant="outline">Tidak Ada Level</Badge>
+                                                <div className="h-12 w-12 bg-muted rounded border flex items-center justify-center text-xs text-muted-foreground">
+                                                    No Img
+                                                </div>
                                             )}
+                                        </TableCell>
+                                        <TableCell className="font-medium">
+                                            <code className="rounded bg-muted px-2 py-1 text-sm">
+                                                {aset.kode_aset}
+                                            </code>
+                                        </TableCell>
+                                        <TableCell>{aset.nama_aset}</TableCell>
+                                        <TableCell>{aset.pemilik_aset || '-'}</TableCell>
+                                        <TableCell>{aset.lokasi || '-'}</TableCell>
+                                        <TableCell>
+                                            <Badge variant={getKritikalitasColor(aset.kritikalitas)}>
+                                                {aset.kritikalitas}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant={getStatusColor(aset.status)}>
+                                                {aset.status}
+                                            </Badge>
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
                                                 <Button variant="outline" size="sm" asChild>
-                                                    <Link href={`/users/${user.id}/edit`}>
+                                                    <Link href={`/asets/${aset.id}/edit`}>
                                                         <Pencil className="h-4 w-4" />
                                                     </Link>
                                                 </Button>
                                                 <Button
                                                     variant="destructive"
                                                     size="sm"
-                                                    onClick={() => handleDelete(user.id, user.name)}
+                                                    onClick={() => handleDelete(aset.id, aset.nama_aset)}
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
@@ -166,8 +232,8 @@ export default function UsersIndex({ users, filters }: Props) {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
-                                        Tidak ada data user
+                                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                                        Tidak ada data aset
                                     </TableCell>
                                 </TableRow>
                             )}
@@ -176,13 +242,13 @@ export default function UsersIndex({ users, filters }: Props) {
                 </div>
 
                 {/* Pagination */}
-                {users.last_page > 1 && (
+                {asets.last_page > 1 && (
                     <div className="flex items-center justify-between">
                         <div className="text-sm text-muted-foreground">
-                            Menampilkan {((users.current_page - 1) * users.per_page) + 1} - {Math.min(users.current_page * users.per_page, users.total)} dari {users.total} data
+                            Menampilkan {((asets.current_page - 1) * asets.per_page) + 1} - {Math.min(asets.current_page * asets.per_page, asets.total)} dari {asets.total} data
                         </div>
                         <div className="flex gap-1">
-                            {users.links.map((link, index) => {
+                            {asets.links.map((link, index) => {
                                 if (link.label === '&laquo; Previous') {
                                     return (
                                         <Button
@@ -234,6 +300,22 @@ export default function UsersIndex({ users, filters }: Props) {
                     </div>
                 )}
             </div>
+
+            {/* Preview Image Dialog */}
+            <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+                <DialogContent className="max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle>{previewImage?.name}</DialogTitle>
+                    </DialogHeader>
+                    <div className="flex items-center justify-center">
+                        <img 
+                            src={previewImage?.url} 
+                            alt={previewImage?.name}
+                            className="max-h-[70vh] w-auto object-contain rounded-lg"
+                        />
+                    </div>
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }

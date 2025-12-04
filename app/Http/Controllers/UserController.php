@@ -9,10 +9,28 @@ use Inertia\Inertia;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('userLevel')->latest()->get();
-        return Inertia::render('users/index', ['users' => $users]);
+        $search = $request->input('search');
+        
+        $users = User::with('userLevel')
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhereHas('userLevel', function ($q) use ($search) {
+                          $q->where('nama_level', 'like', "%{$search}%");
+                      });
+                });
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+        
+        return Inertia::render('users/index', [
+            'users' => $users,
+            'filters' => ['search' => $search],
+        ]);
     }
 
     public function create()

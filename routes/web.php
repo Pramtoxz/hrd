@@ -6,6 +6,7 @@ use Laravel\Fortify\Features;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserLevelController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\AsetController;
 
 
 
@@ -20,9 +21,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
-    Route::resource('users', UserController::class);
-    Route::resource('user-levels', UserLevelController::class);
-    Route::resource('menus', MenuController::class);
+    // Routes with menu access check
+    Route::middleware(['check.menu.access'])->group(function () {
+        Route::resource('users', UserController::class);
+        Route::resource('user-levels', UserLevelController::class);
+        Route::resource('menus', MenuController::class);
+        Route::resource('asets', AsetController::class);
+    });
 });
 
 require __DIR__.'/settings.php';

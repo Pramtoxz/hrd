@@ -31,8 +31,8 @@ export default function Password() {
             <SettingsLayout>
                 <div className="space-y-6">
                     <HeadingSmall
-                        title="Update password"
-                        description="Ensure your account is using a long, random password to stay secure"
+                        title="Ganti Password"
+                        description="password minimal 8 karakter"
                     />
 
                     <Form
@@ -61,7 +61,7 @@ export default function Password() {
                             <>
                                 <div className="grid gap-2">
                                     <Label htmlFor="current_password">
-                                        Current password
+                                        Masukan Password Lama
                                     </Label>
 
                                     <Input
@@ -81,7 +81,7 @@ export default function Password() {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="password">
-                                        New password
+                                        Masukan Password Baru
                                     </Label>
 
                                     <Input
@@ -99,7 +99,7 @@ export default function Password() {
 
                                 <div className="grid gap-2">
                                     <Label htmlFor="password_confirmation">
-                                        Confirm password
+                                        Ulangi Password Baru
                                     </Label>
 
                                     <Input

@@ -58,25 +58,37 @@ class MenuSeeder extends Seeder
                 'urutan' => 3,
                 'status_aktif' => true,
             ],
+            [
+                'nama_menu' => 'Aset',
+                'ikon' => 'Package',
+                'route' => 'asets.index',
+                'url' => '/asets',
+                'parent_id' => 2,
+                'urutan' => 4,
+                'status_aktif' => true,
+            ],
         ];
 
         foreach ($menus as $menu) {
             \App\Models\Menu::create($menu);
         }
-
-        // Assign all menus to Super Admin
+        
+        // Assign menu access to user levels
         $superAdmin = \App\Models\UserLevel::where('kode_level', 'super_admin')->first();
-        $allMenus = \App\Models\Menu::all();
-        $superAdmin->menus()->attach($allMenus->pluck('id'));
-
-        // Assign limited menus to other levels
         $admin = \App\Models\UserLevel::where('kode_level', 'admin')->first();
-        $admin->menus()->attach([1, 2, 3, 4]);
-
-        $manager = \App\Models\UserLevel::where('kode_level', 'manager')->first();
-        $manager->menus()->attach([1, 2, 3]);
-
-        $staff = \App\Models\UserLevel::where('kode_level', 'staff')->first();
-        $staff->menus()->attach([1]);
+        
+        if ($superAdmin) {
+            // Super Admin has access to all menus
+            $allMenus = \App\Models\Menu::pluck('id')->toArray();
+            $superAdmin->menus()->sync($allMenus);
+        }
+        
+        if ($admin) {
+            // Admin has access to Dashboard and Aset only
+            $adminMenus = \App\Models\Menu::whereIn('nama_menu', ['Dashboard', 'Master Data', 'Aset'])
+                ->pluck('id')
+                ->toArray();
+            $admin->menus()->sync($adminMenus);
+        }
     }
 }
