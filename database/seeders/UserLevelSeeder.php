@@ -1,0 +1,46 @@
+<?php
+
+namespace Database\Seeders;
+
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+
+class UserLevelSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        $levels = [
+            [
+                'nama_level' => 'Super Admin',
+                'kode_level' => 'super_admin',
+                'keterangan' => 'Akses penuh ke semua fitur',
+                'status_aktif' => true,
+            ],
+            [
+                'nama_level' => 'Admin',
+                'kode_level' => 'admin',
+                'keterangan' => 'Akses administratif',
+                'status_aktif' => true,
+            ],
+            [
+                'nama_level' => 'Manager',
+                'kode_level' => 'manager',
+                'keterangan' => 'Akses level manager',
+                'status_aktif' => true,
+            ],
+            [
+                'nama_level' => 'Staff',
+                'kode_level' => 'staff',
+                'keterangan' => 'Akses dasar staff',
+                'status_aktif' => true,
+            ],
+        ];
+
+        foreach ($levels as $level) {
+            \App\Models\UserLevel::create($level);
+        }
+    }
+}
