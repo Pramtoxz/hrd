@@ -7,6 +7,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/login';
 import { Form, Head } from '@inertiajs/react';
 import { LogIn } from 'lucide-react';
+import LogoMA from '@/assets/images/malogo.png'
 
 interface LoginProps {
     status?: string;
@@ -16,9 +17,7 @@ interface LoginProps {
 
 export default function Login({ status }: LoginProps) {
     return (
-        <>
-            <Head title="Login - App HRD" />
-            
+        <>   
             <div className="min-h-screen flex">
                 {/* Left Side - Login Form */}
                 <div className="flex-1 flex items-center justify-center p-8 bg-white">
@@ -28,15 +27,15 @@ export default function Login({ status }: LoginProps) {
                             <div className="flex justify-center">
                                 <div className="bg-white p-4 rounded-2xl shadow-lg">
                                     <img 
-                                        src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Honda_Logo.svg" 
+                                        src={LogoMA} 
                                         alt="Honda Logo" 
                                         className="h-16 w-16"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">Sistem Manajemen HRD</h1>
-                                <p className="text-gray-600 mt-2"> Berita Acara PT.Menara Agung</p>
+                                <h1 className="text-2xl font-bold text-gray-900">PT. Menara Agung</h1>
+                                <p className="text-gray-600 mt-2">Sistem Manajemen HRD</p>
                             </div>
                         </div>
 
