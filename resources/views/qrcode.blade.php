@@ -58,7 +58,7 @@
             <div class="lg:col-span-2 animate-fade-in-up">
                 <div class="relative glass-card rounded-3xl p-4 sm:p-6 h-full shadow-2xl shadow-black/30 overflow-hidden transition-all duration-300 hover:border-white/30 hover:shadow-lg hover:shadow-red-900/10">
                     <div class="absolute -bottom-16 -left-16 w-64 h-64 opacity-10">
-                        <lottie-player src="{{ asset('assets/images/dashboard.json') }}" background="transparent" speed="0.5" style="width: 100%; height: 100%;" loop autoplay></lottie-player>
+                        <lottie-player src="{{ asset('assets/animation/dashboard.json') }}" background="transparent" speed="0.5" style="width: 100%; height: 100%;" loop autoplay></lottie-player>
                     </div>
 
                     <div class="relative w-full aspect-square flex items-center justify-center">
