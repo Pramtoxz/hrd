@@ -7,6 +7,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserLevelController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\AsetController;
+use App\Http\Controllers\PressReleaseController;
+use App\Http\Controllers\ArticleController;
 
 Route::get('/cek/qrcode/{id}', [AsetController::class, 'lihat'])->name('cek.qrcode');
 Route::get('/qrcode/aset/{id}', [AsetController::class, 'getQrCode'])->name('qrcode.aset');
@@ -28,6 +30,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('user-levels', UserLevelController::class);
         Route::resource('menus', MenuController::class);
         Route::resource('asets', AsetController::class);
+        Route::resource('article', ArticleController::class);
+        Route::resource('press-release', PressReleaseController::class);
     });
 });
 

@@ -35,8 +35,8 @@ class UserController extends Controller
 
     public function create()
     {
-        $userLevels = \App\Models\UserLevel::where('status_aktif', true)->get();
-        return \Inertia\Inertia::render('users/create', ['userLevels' => $userLevels]);
+        $userLevels = UserLevel::where('status_aktif', true)->get();
+        return Inertia::render('users/create', ['userLevels' => $userLevels]);
     }
 
     public function store(Request $request)
@@ -49,21 +49,21 @@ class UserController extends Controller
         ]);
 
         $validated['password'] = bcrypt($validated['password']);
-        \App\Models\User::create($validated);
+        User::create($validated);
 
         return redirect()->route('users.index');
     }
 
-    public function edit(\App\Models\User $user)
+    public function edit(User $user)
     {
-        $userLevels = \App\Models\UserLevel::where('status_aktif', true)->get();
-        return \Inertia\Inertia::render('users/edit', [
+        $userLevels = UserLevel::where('status_aktif', true)->get();
+        return Inertia::render('users/edit', [
             'user' => $user->load('userLevel'),
             'userLevels' => $userLevels
         ]);
     }
 
-    public function update(Request $request, \App\Models\User $user)
+    public function update(Request $request, User $user)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -83,7 +83,7 @@ class UserController extends Controller
         return redirect()->route('users.index');
     }
 
-    public function destroy(\App\Models\User $user)
+    public function destroy(User $user)
     {
         $user->delete();
         return redirect()->route('users.index');

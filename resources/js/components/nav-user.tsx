@@ -15,6 +15,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { type SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import { ChevronsUpDown } from 'lucide-react';
+import LogoMa from '@/assets/images/malogo.png';
 
 export function NavUser() {
     const { auth } = usePage<SharedData>().props;
@@ -31,7 +32,15 @@ export function NavUser() {
                             className="group text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent"
                             data-test="sidebar-menu-button"
                         >
-                            <UserInfo user={auth.user} />
+                            <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+                            <img src={LogoMa} 
+                            alt="Logo Menara Agung"
+                            className="h-8 w-8 rounded-b-lg object-contain bg-amber-300 p-0.5 border-gray-200/20"
+                            />
+                            <div className="grid flex-1 text-left text-sm leading-tight">
+                                <span className="truncate font-semibold">Pengaturan</span>
+                            </div>
+                            </div>
                             <ChevronsUpDown className="ml-auto size-4" />
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>

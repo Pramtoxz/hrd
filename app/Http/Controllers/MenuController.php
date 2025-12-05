@@ -3,20 +3,23 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Menu;
+use App\Models\UserLevel;
+use Inertia\Inertia;
 
 class MenuController extends Controller
 {
     public function index()
     {
-        $menus = \App\Models\Menu::with(['parent', 'children'])->whereNull('parent_id')->orderBy('urutan')->get();
-        return \Inertia\Inertia::render('menus/index', ['menus' => $menus]);
+        $menus = Menu::with(['parent', 'children'])->whereNull('parent_id')->orderBy('urutan')->get();
+        return Inertia::render('menus/index', ['menus' => $menus]);
     }
 
     public function create()
     {
-        $parentMenus = \App\Models\Menu::whereNull('parent_id')->orderBy('urutan')->get();
-        $userLevels = \App\Models\UserLevel::where('status_aktif', true)->get();
-        return \Inertia\Inertia::render('menus/create', [
+        $parentMenus = Menu::whereNull('parent_id')->orderBy('urutan')->get();
+        $userLevels = UserLevel::where('status_aktif', true)->get();
+        return Inertia::render('menus/create', [
             'parentMenus' => $parentMenus,
             'userLevels' => $userLevels
         ]);
@@ -38,25 +41,25 @@ class MenuController extends Controller
         $userLevels = $validated['user_levels'] ?? [];
         unset($validated['user_levels']);
 
-        $menu = \App\Models\Menu::create($validated);
+        $menu = Menu::create($validated);
         $menu->userLevels()->sync($userLevels);
 
         return redirect()->route('menus.index');
     }
 
-    public function edit(\App\Models\Menu $menu)
+    public function edit(Menu $menu)
     {
-        $parentMenus = \App\Models\Menu::whereNull('parent_id')->where('id', '!=', $menu->id)->orderBy('urutan')->get();
-        $userLevels = \App\Models\UserLevel::where('status_aktif', true)->get();
+        $parentMenus = Menu::whereNull('parent_id')->where('id', '!=', $menu->id)->orderBy('urutan')->get();
+        $userLevels = UserLevel::where('status_aktif', true)->get();
         
-        return \Inertia\Inertia::render('menus/edit', [
+        return Inertia::render('menus/edit', [
             'menu' => $menu->load('userLevels'),
             'parentMenus' => $parentMenus,
             'userLevels' => $userLevels
         ]);
     }
 
-    public function update(Request $request, \App\Models\Menu $menu)
+    public function update(Request $request, Menu $menu)
     {
         $validated = $request->validate([
             'nama_menu' => 'required|string|max:255',
@@ -78,7 +81,7 @@ class MenuController extends Controller
         return redirect()->route('menus.index');
     }
 
-    public function destroy(\App\Models\Menu $menu)
+    public function destroy(Menu $menu)
     {
         $menu->delete();
         return redirect()->route('menus.index');

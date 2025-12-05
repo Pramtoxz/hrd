@@ -148,7 +148,7 @@ export default function MenusCreate({ parentMenus, userLevels }: Props) {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="parent_id">Parent Menu (Optional)</Label>
+                            <Label htmlFor="parent_id">Sub Menu dari (Optional)</Label>
                             <Select
                                 value={data.parent_id || 'none'}
                                 onValueChange={(value) => setData('parent_id', value === 'none' ? '' : value)}
@@ -157,7 +157,7 @@ export default function MenusCreate({ parentMenus, userLevels }: Props) {
                                     <SelectValue placeholder="Pilih Parent Menu" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="none">Tidak Ada (Menu Utama)</SelectItem>
+                                    <SelectItem value="none">Bukan Dari Sub Menu (Biarkan Kosong)</SelectItem>
                                     {parentMenus.map((menu) => (
                                         <SelectItem key={menu.id} value={menu.id.toString()}>
                                             {menu.nama_menu}

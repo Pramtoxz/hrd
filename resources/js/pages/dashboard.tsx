@@ -1,8 +1,9 @@
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
+import Lottie from 'lottie-react';
+import AnimasiDashboard from '@/assets/animation/deal.json';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -14,22 +15,31 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function Dashboard() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
+            <Head>
+                <title>Dashboard</title>
+                <link rel="preconnect" href="https://fonts.googleapis.com" />
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+                <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+            </Head>
+
+            <div className="flex h-full flex-1 flex-col items-center justify-center overflow-hidden rounded-xl p-4">
+                
+                <div className="w-72 max-w-full">
+                    <Lottie 
+                        animationData={AnimasiDashboard} 
+                        loop={true} 
+                        className="h-auto w-full"
+                    />
                 </div>
-                <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                    <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
+                <div className="mt-6 text-center">
+                    <span 
+                        className="block text-5xl font-semibold leading-tight text-gray-800 dark:text-white"
+                        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} // Menggunakan font
+                    >
+                        Sistem Informasi Release
+                    </span>
                 </div>
+                
             </div>
         </AppLayout>
     );

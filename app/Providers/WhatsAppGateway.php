@@ -14,9 +14,9 @@ class WhatsAppGateway
     public function __construct(?int $configId = null)
     {
         if ($configId) {
-            $config = DB::table('hrd.config_wa')->where('id', $configId)->first();
+            $config = DB::table('config_wa')->where('id', $configId)->first();
         } else {
-            $config = DB::table('hrd.config_wa')->first();
+            $config = DB::table('config_wa')->first();
         }
         
         if (!$config) {
@@ -26,7 +26,7 @@ class WhatsAppGateway
         $this->baseUrl = rtrim($config->wa_gateway_url ?? '', '/');
         $this->token   = $config->wa_gateway_secret ?? '';
         $this->session = $config->wa_session_name ?? '';
-        $this->groupId = $config->wa_group_id ?? '';
+        $this->groupId = '';
 
         $missing = [];
         if (!$this->baseUrl) $missing[] = 'wa_gateway_url';

@@ -69,7 +69,6 @@ class AsetController extends Controller
 
     public function create()
     {
-        // Generate next kode aset
         $lastAset = Aset::latest('id')->first();
         $nextNumber = $lastAset ? intval(substr($lastAset->kode_aset, 4)) + 1 : 1;
         $nextKodeAset = 'AST-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
@@ -96,8 +95,7 @@ class AsetController extends Controller
             'keterangan' => 'nullable|string',
             'foto_aset' => 'nullable|image|max:2048',
         ]);
-
-        // Auto generate kode aset if not provided
+        
         if (empty($validated['kode_aset'])) {
             $lastAset = Aset::latest('id')->first();
             $nextNumber = $lastAset ? intval(substr($lastAset->kode_aset, 4)) + 1 : 1;
@@ -140,7 +138,6 @@ class AsetController extends Controller
         ]);
 
         if ($request->hasFile('foto_aset')) {
-            // Delete old photo if exists
             if ($aset->foto_aset && file_exists(public_path('assets/images/foto_aset/' . $aset->foto_aset))) {
                 unlink(public_path('assets/images/foto_aset/' . $aset->foto_aset));
             }
@@ -158,7 +155,6 @@ class AsetController extends Controller
 
     public function destroy(Aset $aset)
     {
-        // Delete photo if exists
         if ($aset->foto_aset && file_exists(public_path('assets/images/foto_aset/' . $aset->foto_aset))) {
             unlink(public_path('assets/images/foto_aset/' . $aset->foto_aset));
         }
