@@ -5,9 +5,45 @@ namespace App\Http\Controllers;
 use App\Models\Aset;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use BaconQrCode\Renderer\ImageRenderer;
+use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\RendererStyle\RendererStyle;
+use BaconQrCode\Writer;
 
 class AsetController extends Controller
 {
+
+
+    public function getQrCode($id)
+    {
+        try {
+            $aset = Aset::findOrFail($id);
+            $url = route('cek.qrcode', ['id' => $aset->id]);
+            $renderer = new ImageRenderer(
+                new RendererStyle(200, 1), 
+                new SvgImageBackEnd()
+            );
+            $writer = new Writer($renderer);
+            $qrCodeSvg = $writer->writeString($url);
+            return response()->json([
+                'success'   => true,
+                'qrCode'    => $qrCodeSvg,
+                'kodeAset'  => $aset->kode_aset,
+                'namaAset'  => $aset->nama_aset,
+                'url'       => $url,
+            ]);
+    
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
+        }
+    }
+
+     public function lihat($id)
+    {
+        $aset = Aset::findOrFail($id);
+        return view('qrcode', compact('aset'));
+    }
+
     public function index(Request $request)
     {
         $search = $request->input('search');

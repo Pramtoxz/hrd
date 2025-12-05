@@ -8,7 +8,8 @@ use App\Http\Controllers\UserLevelController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\AsetController;
 
-
+Route::get('/cek/qrcode/{id}', [AsetController::class, 'lihat'])->name('cek.qrcode');
+Route::get('/qrcode/aset/{id}', [AsetController::class, 'getQrCode'])->name('qrcode.aset');
 
 Route::get('/', function () {
     return Inertia::render('welcome', [

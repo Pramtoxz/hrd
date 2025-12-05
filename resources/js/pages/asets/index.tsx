@@ -12,13 +12,14 @@ import { Input } from '@/components/ui/input';
 import {
     Dialog,
     DialogContent,
+    DialogDescription,
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { Plus, Pencil, Trash2, Search, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, ChevronLeft, ChevronRight, ZoomIn, QrCode, Download, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { useState, useEffect } from 'react';
@@ -82,6 +83,8 @@ const getStatusColor = (status: string) => {
 export default function AsetsIndex({ asets, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [previewImage, setPreviewImage] = useState<{ url: string; name: string } | null>(null);
+    const [qrCodeModal, setQrCodeModal] = useState<{ aset: any; qrCode: string } | null>(null);
+    const [loadingQr, setLoadingQr] = useState(false);
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
@@ -93,6 +96,70 @@ export default function AsetsIndex({ asets, filters }: Props) {
 
         return () => clearTimeout(delayDebounceFn);
     }, [search]);
+
+    const handleShowQrCode = async (aset: any) => {
+        setLoadingQr(true);
+        try {
+            const response = await fetch(`/qrcode/aset/${aset.id}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                setQrCodeModal({ aset, qrCode: data.qrCode });
+            } else {
+                toast.error('Gagal generate QR Code');
+            }
+        } catch (error) {
+            toast.error('Terjadi kesalahan saat generate QR Code');
+        } finally {
+            setLoadingQr(false);
+        }
+    };
+
+    const handleDownloadQrCode = () => {
+        if (!qrCodeModal) return;
+
+        // Convert SVG to PNG
+        const svg = qrCodeModal.qrCode;
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
+        
+        // Set canvas size
+        canvas.width = 400;
+        canvas.height = 400;
+        
+        // Create blob from SVG
+        const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+        
+        img.onload = () => {
+            // Fill white background
+            if (ctx) {
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            }
+            
+            // Convert to PNG and download
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    const pngUrl = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = pngUrl;
+                    link.download = `${qrCodeModal.aset.kode_aset}.png`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(pngUrl);
+                    toast.success('QR Code berhasil didownload');
+                }
+            }, 'image/png');
+            
+            URL.revokeObjectURL(url);
+        };
+        
+        img.src = url;
+    };
 
     const handleDelete = async (id: number, name: string) => {
         const result = await Swal.fire({
@@ -214,6 +281,14 @@ export default function AsetsIndex({ asets, filters }: Props) {
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
+                                                <Button 
+                                                    variant="secondary" 
+                                                    size="sm"
+                                                    onClick={() => handleShowQrCode(aset)}
+                                                    disabled={loadingQr}
+                                                >
+                                                    <QrCode className="h-4 w-4" />
+                                                </Button>
                                                 <Button variant="outline" size="sm" asChild>
                                                     <Link href={`/asets/${aset.id}/edit`}>
                                                         <Pencil className="h-4 w-4" />
@@ -313,6 +388,72 @@ export default function AsetsIndex({ asets, filters }: Props) {
                             alt={previewImage?.name}
                             className="max-h-[70vh] w-auto object-contain rounded-lg"
                         />
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* QR Code Modal */}
+            <Dialog open={!!qrCodeModal} onOpenChange={() => setQrCodeModal(null)}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>QR Code Aset - {qrCodeModal?.aset.kode_aset}</DialogTitle>
+                        <DialogDescription>
+                            Scan QR Code untuk melihat detail lengkap aset atau download untuk membuat stiker
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        {/* QR Code Display */}
+                        <div className="flex flex-col items-center justify-center p-6 bg-muted rounded-lg">
+                            <div 
+                                className="bg-white p-4 rounded-lg shadow-lg"
+                                dangerouslySetInnerHTML={{ __html: qrCodeModal?.qrCode || '' }}
+                            />
+                            <p className="mt-4 text-sm font-medium">{qrCodeModal?.aset.nama_aset}</p>
+                            <code className="text-xs text-muted-foreground">{qrCodeModal?.aset.kode_aset}</code>
+                        </div>
+
+                        {/* Asset Info */}
+                        <div className="grid grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
+                            <div>
+                                <p className="text-sm text-muted-foreground">Pemilik</p>
+                                <p className="font-medium">{qrCodeModal?.aset.pemilik_aset || '-'}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Lokasi</p>
+                                <p className="font-medium">{qrCodeModal?.aset.lokasi || '-'}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Kritikalitas</p>
+                                <Badge variant={getKritikalitasColor(qrCodeModal?.aset.kritikalitas || '')}>
+                                    {qrCodeModal?.aset.kritikalitas}
+                                </Badge>
+                            </div>
+                            <div>
+                                <p className="text-sm text-muted-foreground">Status</p>
+                                <Badge variant={getStatusColor(qrCodeModal?.aset.status || '')}>
+                                    {qrCodeModal?.aset.status}
+                                </Badge>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-2">
+                            <Button 
+                                onClick={handleDownloadQrCode}
+                                className="flex-1"
+                            >
+                                <Download className="mr-2 h-4 w-4" />
+                                Download QR Code
+                            </Button>
+                            <Button 
+                                variant="outline"
+                                onClick={() => window.open(`/cek/qrcode/${qrCodeModal?.aset.id}`, '_blank')}
+                                className="flex-1"
+                            >
+                                <ExternalLink className="mr-2 h-4 w-4" />
+                                Lihat Detail
+                            </Button>
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>
