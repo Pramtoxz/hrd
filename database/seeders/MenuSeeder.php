@@ -4,12 +4,11 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Menu;
+use App\Models\UserLevel;
 
 class MenuSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $menus = [
@@ -70,22 +69,19 @@ class MenuSeeder extends Seeder
         ];
 
         foreach ($menus as $menu) {
-            \App\Models\Menu::create($menu);
+            Menu::create($menu);
         }
         
-        // Assign menu access to user levels
-        $superAdmin = \App\Models\UserLevel::where('kode_level', 'super_admin')->first();
-        $admin = \App\Models\UserLevel::where('kode_level', 'admin')->first();
+        $superAdmin = UserLevel::where('kode_level', 'super_admin')->first();
+        $admin = UserLevel::where('kode_level', 'admin')->first();
         
         if ($superAdmin) {
-            // Super Admin has access to all menus
-            $allMenus = \App\Models\Menu::pluck('id')->toArray();
+            $allMenus = Menu::pluck('id')->toArray();
             $superAdmin->menus()->sync($allMenus);
         }
         
         if ($admin) {
-            // Admin has access to Dashboard and Aset only
-            $adminMenus = \App\Models\Menu::whereIn('nama_menu', ['Dashboard', 'Master Data', 'Aset'])
+            $adminMenus = Menu::whereIn('nama_menu', ['Dashboard', 'Master Data', 'Aset'])
                 ->pluck('id')
                 ->toArray();
             $admin->menus()->sync($adminMenus);

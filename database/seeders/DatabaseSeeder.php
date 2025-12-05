@@ -6,6 +6,7 @@ use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use App\Models\UserLevel;
 
 
 class DatabaseSeeder extends Seeder
@@ -20,10 +21,10 @@ class DatabaseSeeder extends Seeder
             MenuSeeder::class,
         ]);
 
-        $superAdminLevel = \App\Models\UserLevel::where('kode_level', 'super_admin')->first();
+        $superAdminLevel = UserLevel::where('kode_level', 'super_admin')->first();
 
         User::firstOrCreate(
-            ['email' => 'admin@example.com'],
+            ['email' => 'android@gmail.com'],
             [
                 'name' => 'Super Admin',
                 'password' => 'password',

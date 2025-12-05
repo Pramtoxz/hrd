@@ -36,7 +36,7 @@ export default function Dashboard() {
                         className="block text-5xl font-semibold leading-tight text-gray-800 dark:text-white"
                         style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} // Menggunakan font
                     >
-                        Sistem Informasi Release
+                        PT. Menara Agung 
                     </span>
                 </div>
                 

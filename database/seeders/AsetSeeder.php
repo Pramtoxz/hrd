@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Aset;
 
 class AsetSeeder extends Seeder
 {
@@ -12,6 +13,6 @@ class AsetSeeder extends Seeder
      */
     public function run(): void
     {
-        \App\Models\Aset::factory(50)->create();
+      Aset::factory(50)->create();
     }
 }

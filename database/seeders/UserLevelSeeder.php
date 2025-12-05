@@ -4,12 +4,10 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\UserLevel;
 
 class UserLevelSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $levels = [
@@ -40,7 +38,7 @@ class UserLevelSeeder extends Seeder
         ];
 
         foreach ($levels as $level) {
-            \App\Models\UserLevel::create($level);
+            UserLevel::create($level);
         }
     }
 }
