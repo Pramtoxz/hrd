@@ -196,4 +196,13 @@ class PressReleaseController extends Controller
         $pressRelease->delete();
         return redirect()->route('press-release.index');
     }
+    
+    public function toggleStatus(PressRelease $pressRelease)
+    {
+        $pressRelease->update([
+            'status' => !$pressRelease->status
+        ]);
+        
+        return redirect()->route('press-release.index');
+    }
 }

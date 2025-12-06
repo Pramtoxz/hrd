@@ -93,19 +93,17 @@ export default function UsersIndex({ users, filters }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Users" />
+            <Head title="Pengguna" />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold">Users</h1>
-                        <p className="text-sm text-muted-foreground">
-                            Total: {users.total} users
-                        </p>
+                        <h1 className="text-2xl font-bold">Pengguna</h1>
+                        
                     </div>
                     <Button asChild>
                         <Link href="/users/create">
                             <Plus className="mr-2 h-4 w-4" />
-                            Tambah User
+                            Tambah Data
                         </Link>
                     </Button>
                 </div>
@@ -127,6 +125,7 @@ export default function UsersIndex({ users, filters }: Props) {
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead className="w-16">No</TableHead>
                                 <TableHead>Nama</TableHead>
                                 <TableHead>Email</TableHead>
                                 <TableHead>Level</TableHead>
@@ -135,8 +134,11 @@ export default function UsersIndex({ users, filters }: Props) {
                         </TableHeader>
                         <TableBody>
                             {users.data.length > 0 ? (
-                                users.data.map((user) => (
+                                users.data.map((user, index) => (
                                     <TableRow key={user.id}>
+                                        <TableCell className="font-medium">
+                                            {(users.current_page - 1) * users.per_page + index + 1}
+                                        </TableCell>
                                         <TableCell className="font-medium">{user.name}</TableCell>
                                         <TableCell>{user.email}</TableCell>
                                         <TableCell>
@@ -166,7 +168,7 @@ export default function UsersIndex({ users, filters }: Props) {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                                         Tidak ada data user
                                     </TableCell>
                                 </TableRow>

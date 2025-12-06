@@ -7,7 +7,7 @@ import AnimasiDashboard from '@/assets/animation/deal.json';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Dashboard',
+        title: 'PT. Menara Agung',
         href: dashboard().url,
     },
 ];

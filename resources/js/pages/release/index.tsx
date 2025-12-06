@@ -24,15 +24,17 @@ import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { useState, useEffect } from 'react';
 
-interface PressRelease {
+interface Release {
     id: number;
-    what: string;
-    who: string;
-    when: string;
-    where: string;
+    judul: string;
+    isi_berita: string;
+    tanggal_publikasi: string;
     status: boolean;
     user: {
         name: string;
+    };
+    press_release?: {
+        what: string;
     };
     created_at: string;
 }
@@ -45,7 +47,7 @@ interface PaginationLink {
 
 interface Props {
     releases: {
-        data: PressRelease[];
+        data: Release[];
         current_page: number;
         last_page: number;
         per_page: number;
@@ -61,19 +63,18 @@ interface Props {
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Press Release', href: '/press-release' },
+    { title: 'Release', href: '/release' },
 ];
 
-export default function PressReleaseIndex({ releases, filters, isAdmin }: Props) {
+export default function ReleaseIndex({ releases, filters, isAdmin }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || 'all');
 
     useEffect(() => {
-        // Only trigger if search or status has actual value
         if (!search && status === 'all') return;
         
         const delayDebounceFn = setTimeout(() => {
-            router.get('/press-release', { 
+            router.get('/release', { 
                 search: search || undefined, 
                 status: status === 'all' ? undefined : status 
             }, {
@@ -85,10 +86,10 @@ export default function PressReleaseIndex({ releases, filters, isAdmin }: Props)
         return () => clearTimeout(delayDebounceFn);
     }, [search, status]);
 
-    const handleDelete = async (id: number, what: string) => {
+    const handleDelete = async (id: number, judul: string) => {
         const result = await Swal.fire({
             title: 'Konfirmasi Hapus',
-            text: `Apakah Anda yakin ingin menghapus Press Release Ini?`,
+            text: `Apakah Anda yakin ingin menghapus release Ini?`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
@@ -98,24 +99,24 @@ export default function PressReleaseIndex({ releases, filters, isAdmin }: Props)
         });
 
         if (result.isConfirmed) {
-            router.delete(`/press-release/${id}`, {
+            router.delete(`/release/${id}`, {
                 onSuccess: () => {
-                    toast.success('Press release berhasil dihapus');
+                    toast.success('Release berhasil dihapus');
                 },
                 onError: () => {
-                    toast.error('Gagal menghapus press release');
+                    toast.error('Gagal menghapus release');
                 },
             });
         }
     };
 
-    const handleToggleStatus = async (id: number, currentStatus: boolean, what: string) => {
+    const handleToggleStatus = async (id: number, currentStatus: boolean, judul: string) => {
         const newStatus = !currentStatus;
         const statusText = newStatus ? 'Aktifkan' : 'Nonaktifkan';
         
         const result = await Swal.fire({
             title: `Konfirmasi ${statusText}`,
-            text: `Apakah Anda yakin ingin ${statusText.toLowerCase()} Press Release Ini?`,
+            text: `Apakah Anda yakin ingin ${statusText.toLowerCase()} Release Ini?`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: newStatus ? '#10b981' : '#ef4444',
@@ -125,12 +126,12 @@ export default function PressReleaseIndex({ releases, filters, isAdmin }: Props)
         });
 
         if (result.isConfirmed) {
-            router.patch(`/press-release/${id}/toggle-status`, {}, {
+            router.patch(`/release/${id}/toggle-status`, {}, {
                 onSuccess: () => {
-                    toast.success(`Press release berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`);
+                    toast.success(`Release berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`);
                 },
                 onError: () => {
-                    toast.error('Gagal mengubah status press release');
+                    toast.error('Gagal mengubah status release');
                 },
             });
         }
@@ -138,19 +139,19 @@ export default function PressReleaseIndex({ releases, filters, isAdmin }: Props)
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Press Release" />
+            <Head title="Release" />
             <div className="flex h-full flex-1 flex-col gap-4 p-4">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold">Press Release</h1>
+                        <h1 className="text-2xl font-bold">Release</h1>
                         <p className="text-sm text-muted-foreground">
-                            Total: {releases.total} press release {!isAdmin && '(Milik Anda)'}
+                            Total: {releases.total} release {!isAdmin && '(Milik Anda)'}
                         </p>
                     </div>
                     <Button asChild>
-                        <Link href="/press-release/create">
-                            <Plus className="h-1 w-1" />
-                            Tambah Data
+                        <Link href="/release/create">
+                            <Plus className="h-4 w-4" />
+                            Tambah Release
                         </Link>
                     </Button>
                 </div>
@@ -160,7 +161,7 @@ export default function PressReleaseIndex({ releases, filters, isAdmin }: Props)
                     <div className="relative flex-1 max-w-sm">
                         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
-                            placeholder="Cari what, who, where..."
+                            placeholder="Cari judul atau isi berita..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="pl-9"
@@ -172,8 +173,8 @@ export default function PressReleaseIndex({ releases, filters, isAdmin }: Props)
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">Semua Status</SelectItem>
-                            <SelectItem value="true">Selesai</SelectItem>
-                            <SelectItem value="false">Pending</SelectItem>
+                            <SelectItem value="true">Aktif</SelectItem>
+                            <SelectItem value="false">Tidak Aktif</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -183,10 +184,9 @@ export default function PressReleaseIndex({ releases, filters, isAdmin }: Props)
                         <TableHeader>
                             <TableRow>
                                 <TableHead className="w-16">No</TableHead>
-                                <TableHead>What</TableHead>
-                                <TableHead>Who</TableHead>
-                                <TableHead>When</TableHead>
-                                <TableHead>Where</TableHead>
+                                <TableHead>Judul</TableHead>
+                                <TableHead>Tanggal Publikasi</TableHead>
+                                <TableHead>Sumber Press Release</TableHead>
                                 <TableHead>Dibuat Oleh</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead className="text-right">Aksi</TableHead>
@@ -199,18 +199,28 @@ export default function PressReleaseIndex({ releases, filters, isAdmin }: Props)
                                         <TableCell className="font-medium">
                                             {(releases.current_page - 1) * releases.per_page + index + 1}
                                         </TableCell>
-                                        <TableCell className="font-medium max-w-xs truncate">
-                                            {release.what}
+                                        <TableCell className="font-medium max-w-xs">
+                                            <div className="truncate">{release.judul}</div>
+                                            <div className="text-xs text-muted-foreground truncate mt-1">
+                                                {release.isi_berita.substring(0, 100)}...
+                                            </div>
                                         </TableCell>
-                                        <TableCell>{release.who}</TableCell>
-                                        <TableCell>{release.when}</TableCell>
-                                        <TableCell>{release.where}</TableCell>
+                                        <TableCell>
+                                            {new Date(release.tanggal_publikasi).toLocaleDateString('id-ID')}
+                                        </TableCell>
+                                        <TableCell>
+                                            {release.press_release ? (
+                                                <Badge variant="outline">{release.press_release.what}</Badge>
+                                            ) : (
+                                                <span className="text-muted-foreground text-sm">Manual</span>
+                                            )}
+                                        </TableCell>
                                         <TableCell>{release.user.name}</TableCell>
                                         <TableCell>
                                             {release.status ? (
-                                                <Badge variant="default">Selesai</Badge>
+                                                <Badge variant="default">Aktif</Badge>
                                             ) : (
-                                                <Badge variant="secondary">Pending</Badge>
+                                                <Badge variant="secondary">Tidak Aktif</Badge>
                                             )}
                                         </TableCell>
                                         <TableCell className="text-right">
@@ -219,7 +229,7 @@ export default function PressReleaseIndex({ releases, filters, isAdmin }: Props)
                                                     <Button
                                                         variant={release.status ? "outline" : "default"}
                                                         size="sm"
-                                                        onClick={() => handleToggleStatus(release.id, release.status, release.what)}
+                                                        onClick={() => handleToggleStatus(release.id, release.status, release.judul)}
                                                         title={release.status ? "Nonaktifkan" : "Aktifkan"}
                                                         className={release.status ? "text-red-600 hover:text-red-700 hover:bg-red-50" : "bg-green-600 hover:bg-green-700"}
                                                     >
@@ -231,14 +241,14 @@ export default function PressReleaseIndex({ releases, filters, isAdmin }: Props)
                                                     </Button>
                                                 )}
                                                 <Button variant="outline" size="sm" asChild>
-                                                    <Link href={`/press-release/${release.id}/edit`}>
+                                                    <Link href={`/release/${release.id}/edit`}>
                                                         <Pencil className="h-4 w-4" />
                                                     </Link>
                                                 </Button>
                                                 <Button
                                                     variant="destructive"
                                                     size="sm"
-                                                    onClick={() => handleDelete(release.id, release.what)}
+                                                    onClick={() => handleDelete(release.id, release.judul)}
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                 </Button>
@@ -248,8 +258,8 @@ export default function PressReleaseIndex({ releases, filters, isAdmin }: Props)
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                                        Tidak ada data press release
+                                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                        Tidak ada data release
                                     </TableCell>
                                 </TableRow>
                             )}

@@ -199,7 +199,7 @@ export default function AsetsIndex({ asets, filters }: Props) {
                     <Button asChild>
                         <Link href="/asets/create">
                             <Plus className="mr-2 h-4 w-4" />
-                            Tambah Aset
+                            Tambah Data
                         </Link>
                     </Button>
                 </div>
@@ -221,6 +221,7 @@ export default function AsetsIndex({ asets, filters }: Props) {
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead className="w-16">No</TableHead>
                                 <TableHead>Foto</TableHead>
                                 <TableHead>Kode Aset</TableHead>
                                 <TableHead>Nama Aset</TableHead>
@@ -233,8 +234,11 @@ export default function AsetsIndex({ asets, filters }: Props) {
                         </TableHeader>
                         <TableBody>
                             {asets.data.length > 0 ? (
-                                asets.data.map((aset: any) => (
+                                asets.data.map((aset: any, index: number) => (
                                     <TableRow key={aset.id}>
+                                        <TableCell className="font-medium">
+                                            {(asets.current_page - 1) * asets.per_page + index + 1}
+                                        </TableCell>
                                         <TableCell>
                                             {aset.foto_aset ? (
                                                 <div className="relative group">
