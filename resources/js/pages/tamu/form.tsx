@@ -2,16 +2,46 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Head, useForm, usePage, router } from '@inertiajs/react';
-import { Building2, Phone, User, FileText, Users } from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Head, useForm } from '@inertiajs/react';
+import { Building2, Phone, User, FileText, Users, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Lottie from 'lottie-react';
 import rocketAnimation from '@/assets/animation/bisnis.json';
 import MaLogoHorizontal from '@/assets/images/malogo-horizontal.png';
 import Swal from 'sweetalert2';
 
-export default function TamuForm() {
+interface Release {
+    id: number;
+    judul: string;
+    isi_berita: string;
+    tanggal_publikasi: string;
+    fotos: {
+        foto1?: string;
+        foto2?: string;
+        foto3?: string;
+        foto4?: string;
+        foto5?: string;
+    } | null;
+}
+
+interface Props {
+    releases: Release[];
+}
+
+export default function TamuForm({ releases }: Props) {
     const [showSplash, setShowSplash] = useState(true);
+    const [showNewsModal, setShowNewsModal] = useState(false);
+    const [currentReleaseIndex, setCurrentReleaseIndex] = useState(0);
+    const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
+    const [isReadingDetail, setIsReadingDetail] = useState(false);
+    const [showFullNews, setShowFullNews] = useState(false);
     
     const { data, setData, post, processing, errors } = useForm({
         nama_lengkap: '',
@@ -21,12 +51,79 @@ export default function TamuForm() {
         keperluan: '',
     });
 
+    const getPhotos = (fotos: Release['fotos']) => {
+        if (!fotos) return [];
+        return [fotos.foto1, fotos.foto2, fotos.foto3, fotos.foto4, fotos.foto5]
+            .filter(Boolean) as string[];
+    };
+
+    const currentRelease = releases[currentReleaseIndex];
+
     useEffect(() => {
         const timer = setTimeout(() => {
             setShowSplash(false);
+            if (releases.length > 0) {
+                setShowNewsModal(true);
+            }
         }, 3000);
         return () => clearTimeout(timer);
-    }, []);
+    }, [releases]);
+
+    useEffect(() => {
+        if (!showNewsModal || !currentRelease?.fotos) return;
+        
+        const photos = getPhotos(currentRelease.fotos);
+        if (photos.length <= 1) return;
+        
+        const interval = setInterval(() => {
+            setCurrentPhotoIndex((prev) => (prev + 1) % photos.length);
+        }, 3000); 
+        
+        return () => clearInterval(interval);
+    }, [showNewsModal, currentReleaseIndex]);
+
+    useEffect(() => {
+        if (!showNewsModal || isReadingDetail || releases.length <= 1) return;
+        
+        console.log('Auto change release started');
+        
+        const interval = setInterval(() => {
+            // Random release index
+            const randomIndex = Math.floor(Math.random() * releases.length);
+            console.log('Changing to release index:', randomIndex);
+            setCurrentReleaseIndex(randomIndex);
+            
+            // Random starting photo index
+            const newRelease = releases[randomIndex];
+            if (newRelease?.fotos) {
+                const photos = getPhotos(newRelease.fotos);
+                if (photos.length > 0) {
+                    const randomPhotoIndex = Math.floor(Math.random() * photos.length);
+                    console.log('Starting at photo index:', randomPhotoIndex);
+                    setCurrentPhotoIndex(randomPhotoIndex);
+                }
+            }
+        }, 15000);
+        
+        return () => {
+            console.log('Auto change release stopped');
+            clearInterval(interval);
+        };
+    }, [showNewsModal, isReadingDetail, releases]);
+
+    const handleReadMore = () => {
+        setIsReadingDetail(true);
+        setShowFullNews(true);
+    };
+
+    const handleCloseDetail = () => {
+        setIsReadingDetail(false);
+        setShowFullNews(false);
+    };
+
+    const handleViewAllNews = () => {
+        window.open('https://menara-agung.com/', '_blank');
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -41,7 +138,7 @@ export default function TamuForm() {
                     timer: 3000,
                     timerProgressBar: true,
                 }).then(() => {
-                    router.visit('/');
+                    window.location.href = 'https://menara-agung.com/';
                 });
             },
             onError: () => {
@@ -267,6 +364,126 @@ export default function TamuForm() {
                     </div>
                 </div>
             </div>
+
+            {/* News Modal */}
+            <Dialog open={showNewsModal} onOpenChange={setShowNewsModal}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-bold text-red-600">
+                            Berita Terbaru
+                        </DialogTitle>
+                        <DialogDescription>
+                            Informasi terkini dari PT. Menara Agung
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {currentRelease && (
+                        <div className="space-y-4">
+                            {/* Photo Slider */}
+                            {currentRelease.fotos && getPhotos(currentRelease.fotos).length > 0 && (
+                                <div className="relative h-64 md:h-96 rounded-lg overflow-hidden bg-gray-100">
+                                    <img
+                                        src={`/assets/images/release/${getPhotos(currentRelease.fotos)[currentPhotoIndex]}`}
+                                        alt={currentRelease.judul}
+                                        className="w-full h-full object-cover"
+                                    />
+                                    
+                                    {/* Photo Navigation */}
+                                    {getPhotos(currentRelease.fotos).length > 1 && (
+                                        <>
+                                            <button
+                                                onClick={() => setCurrentPhotoIndex((prev) => 
+                                                    prev === 0 ? getPhotos(currentRelease.fotos!).length - 1 : prev - 1
+                                                )}
+                                                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
+                                            >
+                                                <ChevronLeft className="h-6 w-6" />
+                                            </button>
+                                            <button
+                                                onClick={() => setCurrentPhotoIndex((prev) => 
+                                                    (prev + 1) % getPhotos(currentRelease.fotos!).length
+                                                )}
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full"
+                                            >
+                                                <ChevronRight className="h-6 w-6" />
+                                            </button>
+                                            
+                                            {/* Photo Indicators */}
+                                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                                                {getPhotos(currentRelease.fotos).map((_, index) => (
+                                                    <button
+                                                        key={index}
+                                                        onClick={() => setCurrentPhotoIndex(index)}
+                                                        className={`w-2 h-2 rounded-full transition-all ${
+                                                            index === currentPhotoIndex 
+                                                                ? 'bg-white w-8' 
+                                                                : 'bg-white/50'
+                                                        }`}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* News Content */}
+                            <div>
+                                <h3 className="text-xl font-bold mb-2">{currentRelease.judul}</h3>
+                                <p className="text-sm text-gray-500 mb-4">
+                                    {new Date(currentRelease.tanggal_publikasi).toLocaleDateString('id-ID', {
+                                        day: 'numeric',
+                                        month: 'long',
+                                        year: 'numeric'
+                                    })}
+                                </p>
+                                
+                                <div className="text-gray-700">
+                                    {showFullNews ? (
+                                        <div className="whitespace-pre-wrap">{currentRelease.isi_berita}</div>
+                                    ) : (
+                                        <p>{currentRelease.isi_berita.substring(0, 200)}...</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-2 pt-4 border-t">
+                                {!showFullNews ? (
+                                    <Button 
+                                        onClick={handleReadMore}
+                                        className="flex-1 bg-red-600 hover:bg-red-700"
+                                    >
+                                        Baca Selengkapnya
+                                    </Button>
+                                ) : (
+                                    <Button 
+                                        onClick={handleCloseDetail}
+                                        variant="outline"
+                                        className="flex-1"
+                                    >
+                                        Tutup Detail
+                                    </Button>
+                                )}
+                                <Button 
+                                    onClick={handleViewAllNews}
+                                    variant="outline"
+                                    className="flex-1"
+                                >
+                                    Lihat Semua Berita
+                                </Button>
+                            </div>
+
+                            {/* Release Counter */}
+                            {releases.length > 1 && (
+                                <p className="text-center text-sm text-gray-500">
+                                    Berita {currentReleaseIndex + 1} dari {releases.length}
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
 
             <style>{`
                 @keyframes blob {

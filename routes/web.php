@@ -20,9 +20,10 @@ Route::get('/tamu', [BukuTamuController::class, 'publicForm'])->name('tamu.form'
 Route::post('/tamu', [BukuTamuController::class, 'publicStore'])->name('tamu.store');
 
 Route::get('/', function () {
-    return Inertia::render('welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
-    ]);
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+    return redirect()->route('login');
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {

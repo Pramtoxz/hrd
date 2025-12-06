@@ -95,7 +95,30 @@ class BukuTamuController extends Controller
 
     public function publicForm()
     {
-        return Inertia::render('tamu/form');
+        // Get published releases with photos
+        $releases = \App\Models\Release::with(['fotos'])
+            ->where('status', true)
+            ->latest()
+            ->get()
+            ->map(function ($release) {
+                return [
+                    'id' => $release->id,
+                    'judul' => $release->judul,
+                    'isi_berita' => $release->isi_berita,
+                    'tanggal_publikasi' => $release->tanggal_publikasi,
+                    'fotos' => $release->fotos->first() ? [
+                        'foto1' => $release->fotos->first()->foto1,
+                        'foto2' => $release->fotos->first()->foto2,
+                        'foto3' => $release->fotos->first()->foto3,
+                        'foto4' => $release->fotos->first()->foto4,
+                        'foto5' => $release->fotos->first()->foto5,
+                    ] : null,
+                ];
+            });
+        
+        return Inertia::render('tamu/form', [
+            'releases' => $releases,
+        ]);
     }
 
     public function publicStore(Request $request)

@@ -4,6 +4,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import Lottie from 'lottie-react';
 import AnimasiDashboard from '@/assets/animation/deal.json';
+import MaLogoHorizontal from '@/assets/images/malogo-horizontal.png';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -23,7 +24,13 @@ export default function Dashboard() {
             </Head>
 
             <div className="flex h-full flex-1 flex-col items-center justify-center overflow-hidden rounded-xl p-4">
-                
+                 <div className="flex justify-center mb-4 sm:mb-6">
+                    <img 
+                        src={MaLogoHorizontal} 
+                        alt="Logo" 
+                        className="h-12 sm:h-14 lg:h-22 object-contain drop-shadow-2xl" 
+                    />
+                </div>
                 <div className="w-72 max-w-full">
                     <Lottie 
                         animationData={AnimasiDashboard} 
@@ -34,9 +41,9 @@ export default function Dashboard() {
                 <div className="mt-6 text-center">
                     <span 
                         className="block text-5xl font-semibold leading-tight text-gray-800 dark:text-white"
-                        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} // Menggunakan font
+                        style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }} 
                     >
-                        PT. Menara Agung 
+                       Information System
                     </span>
                 </div>
                 
