@@ -141,7 +141,7 @@ export default function PressReleaseEdit({ release, isAdmin }: Props) {
                                     onCheckedChange={(checked) => setData('status', checked)}
                                 />
                                 <Label htmlFor="status" className="cursor-pointer">
-                                    Status: {data.status ? 'Disetujui' : 'Pending'}
+                                    Status: {data.status ? 'Selesai' : 'Pending'}
                                 </Label>
                             </div>
                         )}

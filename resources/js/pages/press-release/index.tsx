@@ -111,7 +111,7 @@ export default function PressReleaseIndex({ releases, filters, isAdmin }: Props)
 
     const handleToggleStatus = async (id: number, currentStatus: boolean, what: string) => {
         const newStatus = !currentStatus;
-        const statusText = newStatus ? 'Aktifkan' : 'Nonaktifkan';
+        const statusText = newStatus ? 'Selesai' : 'Pending';
         
         const result = await Swal.fire({
             title: `Konfirmasi ${statusText}`,
@@ -127,7 +127,7 @@ export default function PressReleaseIndex({ releases, filters, isAdmin }: Props)
         if (result.isConfirmed) {
             router.patch(`/press-release/${id}/toggle-status`, {}, {
                 onSuccess: () => {
-                    toast.success(`Press release berhasil ${newStatus ? 'diaktifkan' : 'dinonaktifkan'}`);
+                    toast.success(`Press release berhasil ${newStatus ? 'selesai' : 'pending'}`);
                 },
                 onError: () => {
                     toast.error('Gagal mengubah status press release');
@@ -220,7 +220,7 @@ export default function PressReleaseIndex({ releases, filters, isAdmin }: Props)
                                                         variant={release.status ? "outline" : "default"}
                                                         size="sm"
                                                         onClick={() => handleToggleStatus(release.id, release.status, release.what)}
-                                                        title={release.status ? "Nonaktifkan" : "Aktifkan"}
+                                                        title={release.status ? "Pending" : "Selesai"}
                                                         className={release.status ? "text-red-600 hover:text-red-700 hover:bg-red-50" : "bg-green-600 hover:bg-green-700"}
                                                     >
                                                         {release.status ? (
