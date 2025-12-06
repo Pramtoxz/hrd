@@ -17,7 +17,7 @@ class PressReleaseController extends Controller
         $user = auth()->user()->load('userLevel');
         $userLevel = $user->userLevel->kode_level ?? null;
         
-        $isAdmin = in_array($userLevel, ['admin', 'super_admin']);
+        $isAdmin = in_array($userLevel, ['admin', 'it_support']);
         
         $releases = PressRelease::with('user')
             ->when(!$isAdmin, function ($query) use ($user) {
@@ -109,7 +109,7 @@ class PressReleaseController extends Controller
     public function edit(PressRelease $pressRelease)
     {
         $user = auth()->user()->load('userLevel');
-        $isAdmin = in_array($user->userLevel->kode_level ?? '', ['admin', 'super_admin']);
+        $isAdmin = in_array($user->userLevel->kode_level ?? '', ['admin', 'it_support']);
         
         return Inertia::render('press-release/edit', [
             'release' => $pressRelease->load('fotos'),
@@ -121,7 +121,7 @@ class PressReleaseController extends Controller
     {
         $user = auth()->user()->load('userLevel');
         $userLevel = $user->userLevel->kode_level ?? null;
-        $isAdmin = in_array($userLevel, ['admin', 'super_admin']);
+        $isAdmin = in_array($userLevel, ['admin', 'it_support']);
         
 
         $validated = $request->validate([
@@ -178,7 +178,7 @@ class PressReleaseController extends Controller
     {
         $user = auth()->user()->load('userLevel');
         $userLevel = $user->userLevel->kode_level ?? null;
-        $isAdmin = in_array($userLevel, ['admin', 'super_admin']);
+        $isAdmin = in_array($userLevel, ['admin', 'it_support']);
         
 
         // Delete photos

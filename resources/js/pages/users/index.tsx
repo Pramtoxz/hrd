@@ -53,7 +53,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Users', href: '/users' },
 ];
 
-export default function UsersIndex({ users, filters }: Props) {
+export default function UsersIndex({ users, filters, isSuperAdmin }: Props) {
     const [search, setSearch] = useState(filters.search || '');
 
     useEffect(() => {

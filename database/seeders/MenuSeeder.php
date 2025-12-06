@@ -72,7 +72,7 @@ class MenuSeeder extends Seeder
             Menu::create($menu);
         }
         
-        $superAdmin = UserLevel::where('kode_level', 'super_admin')->first();
+        $superAdmin = UserLevel::where('kode_level', 'it_support')->first();
         $admin = UserLevel::where('kode_level', 'admin')->first();
         
         if ($superAdmin) {

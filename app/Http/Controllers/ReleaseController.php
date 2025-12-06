@@ -17,7 +17,7 @@ class ReleaseController extends Controller
         $user = auth()->user()->load('userLevel');
         $userLevel = $user->userLevel->kode_level ?? null;
         
-        $isAdmin = in_array($userLevel, ['admin', 'super_admin']);
+        $isAdmin = in_array($userLevel, ['admin', 'it_support']);
         
         $releases = Release::with(['user', 'pressRelease'])
             ->when(!$isAdmin, function ($query) use ($user) {
@@ -124,7 +124,7 @@ class ReleaseController extends Controller
     public function edit(Release $release)
     {
         $user = auth()->user()->load('userLevel');
-        $isAdmin = in_array($user->userLevel->kode_level ?? '', ['admin', 'super_admin']);
+        $isAdmin = in_array($user->userLevel->kode_level ?? '', ['admin', 'it_support']);
         
         // Get only pending press releases (status=false) for writer reference
         $pressReleases = PressRelease::with('fotos')
@@ -144,7 +144,7 @@ class ReleaseController extends Controller
     {
         $user = auth()->user()->load('userLevel');
         $userLevel = $user->userLevel->kode_level ?? null;
-        $isAdmin = in_array($userLevel, ['admin', 'super_admin']);
+        $isAdmin = in_array($userLevel, ['admin', 'it_support']);
 
         $validated = $request->validate([
             'judul' => 'required|string|max:255',

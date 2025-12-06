@@ -12,8 +12,8 @@ class UserLevelSeeder extends Seeder
     {
         $levels = [
             [
-                'nama_level' => 'Super Admin',
-                'kode_level' => 'super_admin',
+                'nama_level' => 'IT Support',
+                'kode_level' => 'it_support',
                 'keterangan' => 'Akses penuh ke semua fitur',
                 'status_aktif' => true,
             ],

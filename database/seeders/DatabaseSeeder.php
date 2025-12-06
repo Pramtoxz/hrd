@@ -21,12 +21,12 @@ class DatabaseSeeder extends Seeder
             MenuSeeder::class,
         ]);
 
-        $superAdminLevel = UserLevel::where('kode_level', 'super_admin')->first();
+        $superAdminLevel = UserLevel::where('kode_level', 'it_support')->first();
 
         User::firstOrCreate(
             ['email' => 'android@gmail.com'],
             [
-                'name' => 'Super Admin',
+                'name' => 'IT Support',
                 'password' => 'password',
                 'email_verified_at' => now(),
                 'password' => Hash::make('1234'),
