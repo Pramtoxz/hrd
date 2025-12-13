@@ -63,7 +63,7 @@
 
                     <div class="relative w-full aspect-square flex items-center justify-center">
                         @if($aset->foto_aset)
-                            <img src="{{ asset('assets/images/foto_aset/' . $aset->foto_aset) }}" alt="Foto {{ $aset->pemilik_aset }}" class="w-full h-full object-cover rounded-2xl shadow-lg shadow-black/50">
+                            <img src="{{ asset('assets/images/foto_aset/' . $aset->foto_aset) }}" alt="Foto {{ $aset->nama_aset }}" class="w-full h-full object-cover rounded-2xl shadow-lg shadow-black/50">
                         @else
                             <div class="w-full h-full bg-gray-700/50 rounded-2xl flex items-center justify-center">
                                 <i class="ph-fill ph-image text-7xl text-gray-500" role="img" aria-label="Placeholder image icon"></i>
@@ -71,7 +71,7 @@
                         @endif
                     </div>
                     <div class="mt-6 text-center">
-                        <h2 class="text-2xl sm:text-2xl font-bold tracking-tight text-white">{{ $aset->nama_aset }}</h2>
+                        <h2 class="text-2xl sm:text-2xl font-bold tracking-tight text-white">{{ $aset->pemilik_aset }}</h2>
                         <p class="text-red-300 font-medium">{{ $aset->kode_aset }}</p>
                     </div>
                 </div>
@@ -95,13 +95,22 @@
                                 <p class="font-semibold text-base sm:text-lg text-white -mt-1">{{ $aset->lokasi ?? '-' }}</p>
                             </div>
                         </div>
+                          <div class="flex items-start animate-fade-in-up delay-500">
+                            <div class="bg-red-500/10 p-2 rounded-full mr-4 shrink-0">
+                                <i class="ph-bold ph-barcode text-xl text-red-300" role="img" aria-label="Owner icon"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-400">Kode Aset</p>
+                                <p class="font-semibold text-base sm:text-lg text-white -mt-1">{{ $aset->kode_aset ?? '-' }}</p>
+                            </div>
+                        </div>
 
                         <div class="flex items-start animate-fade-in-up delay-500">
                             <div class="bg-red-500/10 p-2 rounded-full mr-4 shrink-0">
                                 <i class="ph-bold ph-user-circle text-xl text-red-300" role="img" aria-label="Owner icon"></i>
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-400">Nama Aset</p>
+                                <p class="text-sm font-medium text-gray-400">Pemilik</p>
                                 <p class="font-semibold text-base sm:text-lg text-white -mt-1">{{ $aset->nama_aset ?? '-' }}</p>
                             </div>
                         </div>
