@@ -72,7 +72,7 @@
                     </div>
                     <div class="mt-6 text-center">
                         <h2 class="text-2xl sm:text-2xl font-bold tracking-tight text-white">{{ $aset->pemilik_aset }}</h2>
-                        <p class="text-red-300 font-medium">{{ $aset->kode_aset }}</p>
+                        <p class="text-red-300 font-medium">({{ $aset->nama_aset }})</p>
                     </div>
                 </div>
             </div>
@@ -110,7 +110,7 @@
                                 <i class="ph-bold ph-user-circle text-xl text-red-300" role="img" aria-label="Owner icon"></i>
                             </div>
                             <div>
-                                <p class="text-sm font-medium text-gray-400">Pemilik</p>
+                                <p class="text-sm font-medium text-gray-400">Nama Aset</p>
                                 <p class="font-semibold text-base sm:text-lg text-white -mt-1">{{ $aset->nama_aset ?? '-' }}</p>
                             </div>
                         </div>
