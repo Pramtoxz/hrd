@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import React from 'react';
 import { X, Plus, Minus } from 'lucide-react';
+import { compressImage, formatFileSize } from '@/utils/imageCompressor';
 
 interface Props {
     release: {
@@ -118,22 +119,47 @@ export default function PressReleaseEdit({ release, isAdmin }: Props) {
         setData(`isi_kutipan_${quoteNum}` as any, '');
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
         const file = e.target.files?.[0] || null;
-        setData(key as any, file);
         
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreviews(prev => ({ ...prev, [key]: reader.result as string }));
-            };
-            reader.readAsDataURL(file);
-        } else {
+        if (!file) {
+            setData(key as any, null);
             setPreviews(prev => {
                 const newPreviews = { ...prev };
                 delete newPreviews[key];
                 return newPreviews;
             });
+            return;
+        }
+        
+        try {
+            // Show loading toast
+            const originalSize = formatFileSize(file.size);
+            const loadingToast = toast.loading(`Memproses ${file.name} (${originalSize})...`);
+            
+            // Compress image if needed (target: 1.9MB with highest quality possible)
+            const compressedFile = await compressImage(file, 1.9, 3840);
+            const compressedSize = formatFileSize(compressedFile.size);
+            
+            // Dismiss loading toast
+            toast.dismiss(loadingToast);
+            
+            // Show compression result if file was compressed
+            if (compressedFile.size < file.size) {
+                toast.success(`Foto berhasil dikompres: ${originalSize} → ${compressedSize}`);
+            }
+            
+            setData(key as any, compressedFile);
+            
+            // Create preview
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviews(prev => ({ ...prev, [key]: reader.result as string }));
+            };
+            reader.readAsDataURL(compressedFile);
+        } catch (error) {
+            console.error('Error processing image:', error);
+            toast.error('Gagal memproses foto. Silakan coba lagi.');
         }
     };
 
@@ -165,8 +191,57 @@ export default function PressReleaseEdit({ release, isAdmin }: Props) {
                 onSuccess: () => {
                     toast.success('Press release berhasil diupdate');
                 },
-                onError: () => {
-                    toast.error('Gagal mengupdate press release');
+                onError: (errors) => {
+                    // Translate field names to Indonesian
+                    const fieldTranslations: { [key: string]: string } = {
+                        'what': 'What (Apa)',
+                        'who': 'Who (Siapa)',
+                        'when': 'When (Kapan)',
+                        'where': 'Where (Dimana)',
+                        'why': 'Why (Mengapa)',
+                        'how': 'How (Bagaimana)',
+                        'pemberi_kutipan_1': 'Pemberi Kutipan 1',
+                        'isi_kutipan_1': 'Isi Kutipan 1',
+                        'pemberi_kutipan_2': 'Pemberi Kutipan 2',
+                        'isi_kutipan_2': 'Isi Kutipan 2',
+                        'pemberi_kutipan_3': 'Pemberi Kutipan 3',
+                        'isi_kutipan_3': 'Isi Kutipan 3',
+                        'foto1': 'Foto 1',
+                        'foto2': 'Foto 2',
+                        'foto3': 'Foto 3',
+                        'foto4': 'Foto 4',
+                        'foto5': 'Foto 5',
+                        'deskripsi_foto1': 'Deskripsi Foto 1',
+                        'deskripsi_foto2': 'Deskripsi Foto 2',
+                        'deskripsi_foto3': 'Deskripsi Foto 3',
+                        'deskripsi_foto4': 'Deskripsi Foto 4',
+                        'deskripsi_foto5': 'Deskripsi Foto 5',
+                    };
+                    
+                    const errorList = Object.entries(errors)
+                        .map(([key, value]) => {
+                            const fieldName = fieldTranslations[key] || key.replace(/_/g, ' ');
+                            return `<div style="margin: 8px 0; padding: 8px; background: #fee; border-left: 3px solid #f87171; border-radius: 4px;">
+                                <strong style="color: #991b1b;">${fieldName}:</strong>
+                                <span style="color: #7f1d1d; margin-left: 8px;">${value}</span>
+                            </div>`;
+                        })
+                        .join('');
+                    
+                    Swal.fire({
+                        icon: 'error',
+                        title: '<span style="color: #991b1b;">Validasi Gagal</span>',
+                        html: `<div style="text-align: left; max-height: 400px; overflow-y: auto;">
+                            <p style="margin-bottom: 16px; color: #374151; font-size: 14px;">Mohon perbaiki kesalahan berikut:</p>
+                            ${errorList}
+                        </div>`,
+                        confirmButtonText: 'Mengerti',
+                        confirmButtonColor: '#dc2626',
+                        customClass: {
+                            popup: 'swal-wide',
+                            htmlContainer: 'swal-html-container'
+                        }
+                    });
                 },
             });
         }
