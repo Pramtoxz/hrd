@@ -19,7 +19,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
-import { Plus, Pencil, Trash2, Search, ChevronLeft, ChevronRight, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, ChevronLeft, ChevronRight, CheckCircle, XCircle, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import { useState, useEffect } from 'react';
@@ -227,6 +227,11 @@ export default function ReleaseIndex({ releases, filters, isAdmin }: Props) {
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
+                                                <Button variant="outline" size="sm" asChild>
+                                                    <Link href={`/release/${release.id}`}>
+                                                        <Eye className="h-4 w-4" />
+                                                    </Link>
+                                                </Button>
                                                 {isAdmin && (
                                                     <Button
                                                         variant={release.status ? "outline" : "default"}

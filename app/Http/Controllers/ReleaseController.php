@@ -157,6 +157,15 @@ class ReleaseController extends Controller
         ]);
     }
 
+    public function show(Release $release)
+    {
+        $release->load(['fotos', 'pressRelease.fotos', 'user']);
+        
+        return Inertia::render('release/show', [
+            'release' => $release,
+        ]);
+    }
+
     public function update(Request $request, Release $release)
     {
         $user = Auth::user()->load('userLevel');
