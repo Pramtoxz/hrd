@@ -208,9 +208,11 @@ export default function ReleaseIndex({ releases, filters, isAdmin }: Props) {
                                         <TableCell>
                                             {new Date(release.tanggal_publikasi).toLocaleDateString('id-ID')}
                                         </TableCell>
-                                        <TableCell>
+                                        <TableCell className="max-w-xs">
                                             {release.press_release ? (
-                                                <Badge variant="outline">{release.press_release.what}</Badge>
+                                                <div className="line-clamp-2" title={release.press_release.what}>
+                                                    {release.press_release.what}
+                                                </div>
                                             ) : (
                                                 <span className="text-muted-foreground text-sm">Manual</span>
                                             )}

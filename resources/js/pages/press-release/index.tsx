@@ -199,12 +199,26 @@ export default function PressReleaseIndex({ releases, filters, isAdmin }: Props)
                                         <TableCell className="font-medium">
                                             {(releases.current_page - 1) * releases.per_page + index + 1}
                                         </TableCell>
-                                        <TableCell className="font-medium max-w-xs truncate">
-                                            {release.what}
+                                        <TableCell className="font-medium max-w-xs">
+                                            <div className="line-clamp-2" title={release.what}>
+                                                {release.what}
+                                            </div>
                                         </TableCell>
-                                        <TableCell>{release.who}</TableCell>
-                                        <TableCell>{release.when}</TableCell>
-                                        <TableCell>{release.where}</TableCell>
+                                        <TableCell className="max-w-xs">
+                                            <div className="line-clamp-2" title={release.who}>
+                                                {release.who}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="max-w-xs">
+                                            <div className="line-clamp-2" title={release.when}>
+                                                {release.when}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="max-w-xs">
+                                            <div className="line-clamp-2" title={release.where}>
+                                                {release.where}
+                                            </div>
+                                        </TableCell>
                                         <TableCell>{release.user.name}</TableCell>
                                         <TableCell>
                                             {release.status ? (

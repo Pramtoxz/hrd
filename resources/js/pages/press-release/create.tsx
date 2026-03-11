@@ -2,13 +2,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
 import { toast } from 'sonner';
 import Swal from 'sweetalert2';
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, Plus, Minus } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -24,16 +31,40 @@ export default function PressReleaseCreate() {
         where: '',
         why: '',
         how: '',
-        pemberi_kutipan: '',
-        isi_kutipan: '',
+        pemberi_kutipan_1: '',
+        isi_kutipan_1: '',
+        pemberi_kutipan_2: '',
+        isi_kutipan_2: '',
+        pemberi_kutipan_3: '',
+        isi_kutipan_3: '',
         foto1: null as File | null,
         foto2: null as File | null,
         foto3: null as File | null,
         foto4: null as File | null,
         foto5: null as File | null,
+        deskripsi_foto1: '',
+        deskripsi_foto2: '',
+        deskripsi_foto3: '',
+        deskripsi_foto4: '',
+        deskripsi_foto5: '',
     });
 
     const [previews, setPreviews] = React.useState<{ [key: string]: string }>({});
+    const [activeQuotes, setActiveQuotes] = React.useState<number[]>([]);
+
+    const addQuote = () => {
+        const nextQuote = [1, 2, 3].find(num => !activeQuotes.includes(num));
+        if (nextQuote) {
+            setActiveQuotes([...activeQuotes, nextQuote]);
+        }
+    };
+
+    const removeQuote = (quoteNum: number) => {
+        setActiveQuotes(activeQuotes.filter(num => num !== quoteNum));
+        // Clear the form data for removed quote
+        setData(`pemberi_kutipan_${quoteNum}` as any, '');
+        setData(`isi_kutipan_${quoteNum}` as any, '');
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, key: string) => {
         const file = e.target.files?.[0] || null;
@@ -101,11 +132,12 @@ export default function PressReleaseCreate() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="what">What (Apa) *</Label>
-                                <Input
+                                <Textarea
                                     id="what"
                                     value={data.what}
                                     onChange={(e) => setData('what', e.target.value)}
                                     placeholder="Apa yang terjadi?"
+                                    rows={3}
                                     required
                                 />
                                 {errors.what && <p className="text-sm text-red-500">{errors.what}</p>}
@@ -113,11 +145,12 @@ export default function PressReleaseCreate() {
 
                             <div className="space-y-2">
                                 <Label htmlFor="who">Who (Siapa) *</Label>
-                                <Input
+                                <Textarea
                                     id="who"
                                     value={data.who}
                                     onChange={(e) => setData('who', e.target.value)}
                                     placeholder="Siapa yang terlibat?"
+                                    rows={3}
                                     required
                                 />
                                 {errors.who && <p className="text-sm text-red-500">{errors.who}</p>}
@@ -125,11 +158,12 @@ export default function PressReleaseCreate() {
 
                             <div className="space-y-2">
                                 <Label htmlFor="when">When (Kapan) *</Label>
-                                <Input
+                                <Textarea
                                     id="when"
                                     value={data.when}
                                     onChange={(e) => setData('when', e.target.value)}
                                     placeholder="Kapan terjadi?"
+                                    rows={3}
                                     required
                                 />
                                 {errors.when && <p className="text-sm text-red-500">{errors.when}</p>}
@@ -137,11 +171,12 @@ export default function PressReleaseCreate() {
 
                             <div className="space-y-2">
                                 <Label htmlFor="where">Where (Dimana) *</Label>
-                                <Input
+                                <Textarea
                                     id="where"
                                     value={data.where}
                                     onChange={(e) => setData('where', e.target.value)}
                                     placeholder="Dimana terjadi?"
+                                    rows={3}
                                     required
                                 />
                                 {errors.where && <p className="text-sm text-red-500">{errors.where}</p>}
@@ -175,39 +210,93 @@ export default function PressReleaseCreate() {
                         </div>
 
                         {/* Kutipan */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="pemberi_kutipan">Pemberi Kutipan</Label>
-                                <Input
-                                    id="pemberi_kutipan"
-                                    value={data.pemberi_kutipan}
-                                    onChange={(e) => setData('pemberi_kutipan', e.target.value)}
-                                    placeholder="Nama pemberi kutipan"
-                                />
-                                {errors.pemberi_kutipan && <p className="text-sm text-red-500">{errors.pemberi_kutipan}</p>}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <Label className="text-base font-semibold">Kutipan (Maksimal 3)</Label>
+                                {activeQuotes.length < 3 && (
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={addQuote}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        Tambah Kutipan
+                                    </Button>
+                                )}
                             </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="isi_kutipan">Isi Kutipan</Label>
-                            <Textarea
-                                id="isi_kutipan"
-                                value={data.isi_kutipan}
-                                onChange={(e) => setData('isi_kutipan', e.target.value)}
-                                placeholder="Isi kutipan"
-                                rows={3}
-                            />
-                            {errors.isi_kutipan && <p className="text-sm text-red-500">{errors.isi_kutipan}</p>}
+                            
+                            {activeQuotes.length === 0 && (
+                                <div className="p-4 border-2 border-dashed rounded-lg text-center">
+                                    <p className="text-sm text-muted-foreground mb-2">Belum ada kutipan</p>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={addQuote}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        Tambah Kutipan Pertama
+                                    </Button>
+                                </div>
+                            )}
+                            
+                            {activeQuotes.map((num) => (
+                                <div key={num} className="p-4 border rounded-lg space-y-4 relative">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="font-medium text-sm">Kutipan {num}</h4>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => removeQuote(num)}
+                                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                        >
+                                            <Minus className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor={`pemberi_kutipan_${num}`}>Pemberi Kutipan {num}</Label>
+                                        <Textarea
+                                            id={`pemberi_kutipan_${num}`}
+                                            value={data[`pemberi_kutipan_${num}` as keyof typeof data] as string}
+                                            onChange={(e) => setData(`pemberi_kutipan_${num}` as any, e.target.value)}
+                                            placeholder="Nama dan jabatan pemberi kutipan"
+                                            rows={2}
+                                        />
+                                        {errors[`pemberi_kutipan_${num}` as keyof typeof errors] && (
+                                            <p className="text-sm text-red-500">{errors[`pemberi_kutipan_${num}` as keyof typeof errors]}</p>
+                                        )}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor={`isi_kutipan_${num}`}>Isi Kutipan {num}</Label>
+                                        <Textarea
+                                            id={`isi_kutipan_${num}`}
+                                            value={data[`isi_kutipan_${num}` as keyof typeof data] as string}
+                                            onChange={(e) => setData(`isi_kutipan_${num}` as any, e.target.value)}
+                                            placeholder="Isi kutipan"
+                                            rows={3}
+                                        />
+                                        {errors[`isi_kutipan_${num}` as keyof typeof errors] && (
+                                            <p className="text-sm text-red-500">{errors[`isi_kutipan_${num}` as keyof typeof errors]}</p>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
 
                         {/* Foto Upload */}
                         <div className="space-y-4">
-                            <Label>Foto (Maksimal 5)</Label>
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                            <Label>Foto dan Deskripsi (Maksimal 5)</Label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {[1, 2, 3, 4, 5].map((num) => {
                                     const key = `foto${num}`;
+                                    const descKey = `deskripsi_foto${num}`;
                                     return (
-                                        <div key={key} className="space-y-2">
+                                        <div key={key} className="space-y-3 p-4 border rounded-lg">
+                                            <h4 className="font-medium text-sm">Foto {num}</h4>
                                             {previews[key] ? (
                                                 <div className="relative">
                                                     <img 
@@ -228,7 +317,7 @@ export default function PressReleaseCreate() {
                                             ) : (
                                                 <div className="h-32 border-2 border-dashed rounded-lg flex items-center justify-center">
                                                     <label htmlFor={key} className="cursor-pointer text-center p-2">
-                                                        <p className="text-xs text-muted-foreground">Foto {num}</p>
+                                                        <p className="text-xs text-muted-foreground">Upload Foto {num}</p>
                                                         <Input
                                                             id={key}
                                                             type="file"
@@ -239,12 +328,26 @@ export default function PressReleaseCreate() {
                                                     </label>
                                                 </div>
                                             )}
+                                            <div className="space-y-2">
+                                                <Label htmlFor={descKey} className="text-xs">Deskripsi Foto {num}</Label>
+                                                <Textarea
+                                                    id={descKey}
+                                                    value={data[descKey as keyof typeof data] as string}
+                                                    onChange={(e) => setData(descKey as any, e.target.value)}
+                                                    placeholder="Deskripsi foto (opsional)"
+                                                    rows={2}
+                                                    className="text-xs"
+                                                />
+                                                {errors[descKey as keyof typeof errors] && (
+                                                    <p className="text-xs text-red-500">{errors[descKey as keyof typeof errors]}</p>
+                                                )}
+                                            </div>
                                         </div>
                                     );
                                 })}
                             </div>
                             <p className="text-xs text-muted-foreground">
-                                Format: JPG, PNG. Maksimal 2MB per foto
+                                Format: JPG, PNG. Maksimal 2MB per foto. Deskripsi foto bersifat opsional.
                             </p>
                         </div>
 

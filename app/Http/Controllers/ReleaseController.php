@@ -6,6 +6,7 @@ use App\Models\Release;
 use App\Models\PressRelease;
 use App\Models\FotoRelease;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class ReleaseController extends Controller
@@ -14,7 +15,7 @@ class ReleaseController extends Controller
     {
         $search = $request->input('search');
         $status = $request->input('status');
-        $user = auth()->user()->load('userLevel');
+        $user = Auth::user()->load('userLevel');
         $userLevel = $user->userLevel->kode_level ?? null;
         
         $isAdmin = in_array($userLevel, ['admin', 'it_support']);
@@ -48,7 +49,10 @@ class ReleaseController extends Controller
         // Get only pending press releases (status=false) for writer reference
         $pressReleases = PressRelease::with('fotos')
             ->where('status', false)
-            ->select('id', 'what', 'who', 'when', 'where', 'why', 'how', 'pemberi_kutipan', 'isi_kutipan', 'status')
+            ->select('id', 'what', 'who', 'when', 'where', 'why', 'how', 
+                    'pemberi_kutipan_1', 'isi_kutipan_1',
+                    'pemberi_kutipan_2', 'isi_kutipan_2', 
+                    'pemberi_kutipan_3', 'isi_kutipan_3', 'status')
             ->latest()
             ->get();
             
@@ -60,7 +64,7 @@ class ReleaseController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'judul' => 'required|string|max:255',
+            'judul' => 'required|string',
             'isi_berita' => 'required|string',
             'tanggal_publikasi' => 'required|date',
             'press_release_id' => 'nullable|exists:press_release,id',
@@ -70,25 +74,27 @@ class ReleaseController extends Controller
             'foto3' => 'nullable|image|max:2048',
             'foto4' => 'nullable|image|max:2048',
             'foto5' => 'nullable|image|max:2048',
+            'deskripsi_foto1' => 'nullable|string',
+            'deskripsi_foto2' => 'nullable|string',
+            'deskripsi_foto3' => 'nullable|string',
+            'deskripsi_foto4' => 'nullable|string',
+            'deskripsi_foto5' => 'nullable|string',
         ]);
 
-        $validated['user_id'] = auth()->id();
+        $validated['user_id'] = Auth::id();
         $validated['status'] = false;
 
         $release = Release::create($validated);
-        
-        // Handle photos
         $fotoData = [];
         
         if ($request->use_press_release_photos && $request->press_release_id) {
-            // Copy photos from press release
             $pressRelease = PressRelease::with('fotos')->find($request->press_release_id);
             if ($pressRelease && $pressRelease->fotos->first()) {
                 $prFotos = $pressRelease->fotos->first();
                 
-                // Copy existing photos from press release to release folder
                 for ($i = 1; $i <= 5; $i++) {
                     $key = "foto{$i}";
+                    $descKey = "deskripsi_foto{$i}";
                     if ($prFotos->$key) {
                         $sourcePath = public_path('assets/images/press_release/' . $prFotos->$key);
                         if (file_exists($sourcePath)) {
@@ -96,20 +102,29 @@ class ReleaseController extends Controller
                             $destPath = public_path('assets/images/release/' . $newFilename);
                             copy($sourcePath, $destPath);
                             $fotoData[$key] = $newFilename;
+                            
+                            // Copy description from press release if exists
+                            if ($prFotos->$descKey) {
+                                $fotoData[$descKey] = $prFotos->$descKey;
+                            }
                         }
                     }
                 }
             }
         }
         
-        // Upload new photos (manual or additional)
         for ($i = 1; $i <= 5; $i++) {
             $key = "foto{$i}";
+            $descKey = "deskripsi_foto{$i}";
             if ($request->hasFile($key)) {
                 $file = $request->file($key);
                 $filename = time() . "_{$i}_" . $file->getClientOriginalName();
                 $file->move(public_path('assets/images/release'), $filename);
                 $fotoData[$key] = $filename;
+            }
+            // Add description for manual photos
+            if ($request->filled($descKey) && !isset($fotoData[$descKey])) {
+                $fotoData[$descKey] = $request->input($descKey);
             }
         }
 
@@ -123,13 +138,15 @@ class ReleaseController extends Controller
 
     public function edit(Release $release)
     {
-        $user = auth()->user()->load('userLevel');
+        $user = Auth::user()->load('userLevel');
         $isAdmin = in_array($user->userLevel->kode_level ?? '', ['admin', 'it_support']);
         
-        // Get only pending press releases (status=false) for writer reference
         $pressReleases = PressRelease::with('fotos')
             ->where('status', false)
-            ->select('id', 'what', 'who', 'when', 'where', 'why', 'how', 'pemberi_kutipan', 'isi_kutipan', 'status')
+            ->select('id', 'what', 'who', 'when', 'where', 'why', 'how', 
+                    'pemberi_kutipan_1', 'isi_kutipan_1',
+                    'pemberi_kutipan_2', 'isi_kutipan_2', 
+                    'pemberi_kutipan_3', 'isi_kutipan_3', 'status')
             ->latest()
             ->get();
         
@@ -142,12 +159,12 @@ class ReleaseController extends Controller
 
     public function update(Request $request, Release $release)
     {
-        $user = auth()->user()->load('userLevel');
+        $user = Auth::user()->load('userLevel');
         $userLevel = $user->userLevel->kode_level ?? null;
         $isAdmin = in_array($userLevel, ['admin', 'it_support']);
 
         $validated = $request->validate([
-            'judul' => 'required|string|max:255',
+            'judul' => 'required|string',
             'isi_berita' => 'required|string',
             'tanggal_publikasi' => 'required|date',
             'press_release_id' => 'nullable|exists:press_release,id',
@@ -157,6 +174,11 @@ class ReleaseController extends Controller
             'foto3' => 'nullable|image|max:2048',
             'foto4' => 'nullable|image|max:2048',
             'foto5' => 'nullable|image|max:2048',
+            'deskripsi_foto1' => 'nullable|string',
+            'deskripsi_foto2' => 'nullable|string',
+            'deskripsi_foto3' => 'nullable|string',
+            'deskripsi_foto4' => 'nullable|string',
+            'deskripsi_foto5' => 'nullable|string',
             'deleted_photos' => 'nullable|array',
         ]);
         
@@ -169,7 +191,6 @@ class ReleaseController extends Controller
         $foto = $release->fotos()->first();
         $fotoData = [];
         
-        // Handle deleted photos
         if ($request->has('deleted_photos') && $foto) {
             foreach ($request->deleted_photos as $key) {
                 if ($foto->$key && file_exists(public_path('assets/images/release/' . $foto->$key))) {
@@ -179,11 +200,10 @@ class ReleaseController extends Controller
             }
         }
         
-        // Handle new uploaded photos
         for ($i = 1; $i <= 5; $i++) {
             $key = "foto{$i}";
+            $descKey = "deskripsi_foto{$i}";
             if ($request->hasFile($key)) {
-                // Delete old photo if exists
                 if ($foto && $foto->$key && file_exists(public_path('assets/images/release/' . $foto->$key))) {
                     unlink(public_path('assets/images/release/' . $foto->$key));
                 }
@@ -192,6 +212,10 @@ class ReleaseController extends Controller
                 $filename = time() . "_{$i}_" . $file->getClientOriginalName();
                 $file->move(public_path('assets/images/release'), $filename);
                 $fotoData[$key] = $filename;
+            }
+            // Add description for manual photos
+            if ($request->filled($descKey)) {
+                $fotoData[$descKey] = $request->input($descKey);
             }
         }
 
@@ -209,7 +233,6 @@ class ReleaseController extends Controller
 
     public function destroy(Release $release)
     {
-        // Delete photos
         $foto = $release->fotos()->first();
         if ($foto) {
             for ($i = 1; $i <= 5; $i++) {
@@ -239,19 +262,22 @@ class ReleaseController extends Controller
         $pressRelease = PressRelease::with('fotos')->find($id);
         
         if (!$pressRelease || !$pressRelease->fotos->first()) {
-            return response()->json(['photos' => []]);
+            return response()->json(['photos' => [], 'descriptions' => []]);
         }
         
         $fotos = $pressRelease->fotos->first();
         $photos = [];
+        $descriptions = [];
         
         for ($i = 1; $i <= 5; $i++) {
             $key = "foto{$i}";
+            $descKey = "deskripsi_foto{$i}";
             if ($fotos->$key) {
                 $photos[$key] = asset('assets/images/press_release/' . $fotos->$key);
+                $descriptions[$descKey] = $fotos->$descKey ?? '';
             }
         }
         
-        return response()->json(['photos' => $photos]);
+        return response()->json(['photos' => $photos, 'descriptions' => $descriptions]);
     }
 }

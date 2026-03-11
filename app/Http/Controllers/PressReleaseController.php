@@ -58,13 +58,22 @@ class PressReleaseController extends Controller
             'where' => 'required|string',
             'why' => 'required|string',
             'how' => 'required|string',
-            'pemberi_kutipan' => 'nullable|string',
-            'isi_kutipan' => 'nullable|string',
+            'pemberi_kutipan_1' => 'nullable|string',
+            'isi_kutipan_1' => 'nullable|string',
+            'pemberi_kutipan_2' => 'nullable|string',
+            'isi_kutipan_2' => 'nullable|string',
+            'pemberi_kutipan_3' => 'nullable|string',
+            'isi_kutipan_3' => 'nullable|string',
             'foto1' => 'nullable|image|max:2048',
             'foto2' => 'nullable|image|max:2048',
             'foto3' => 'nullable|image|max:2048',
             'foto4' => 'nullable|image|max:2048',
             'foto5' => 'nullable|image|max:2048',
+            'deskripsi_foto1' => 'nullable|string',
+            'deskripsi_foto2' => 'nullable|string',
+            'deskripsi_foto3' => 'nullable|string',
+            'deskripsi_foto4' => 'nullable|string',
+            'deskripsi_foto5' => 'nullable|string',
         ]);
 
         $validated['user_id'] = auth()->id();
@@ -74,11 +83,15 @@ class PressReleaseController extends Controller
         $fotoData = [];
         for ($i = 1; $i <= 5; $i++) {
             $key = "foto{$i}";
+            $descKey = "deskripsi_foto{$i}";
             if ($request->hasFile($key)) {
                 $file = $request->file($key);
                 $filename = time() . "_{$i}_" . $file->getClientOriginalName();
                 $file->move(public_path('assets/images/press_release'), $filename);
                 $fotoData[$key] = $filename;
+            }
+            if ($request->filled($descKey)) {
+                $fotoData[$descKey] = $request->input($descKey);
             }
         }
 
@@ -131,14 +144,23 @@ class PressReleaseController extends Controller
             'where' => 'required|string',
             'why' => 'required|string',
             'how' => 'required|string',
-            'pemberi_kutipan' => 'nullable|string',
-            'isi_kutipan' => 'nullable|string',
+            'pemberi_kutipan_1' => 'nullable|string',
+            'isi_kutipan_1' => 'nullable|string',
+            'pemberi_kutipan_2' => 'nullable|string',
+            'isi_kutipan_2' => 'nullable|string',
+            'pemberi_kutipan_3' => 'nullable|string',
+            'isi_kutipan_3' => 'nullable|string',
             'status' => 'boolean',
             'foto1' => 'nullable|image|max:2048',
             'foto2' => 'nullable|image|max:2048',
             'foto3' => 'nullable|image|max:2048',
             'foto4' => 'nullable|image|max:2048',
             'foto5' => 'nullable|image|max:2048',
+            'deskripsi_foto1' => 'nullable|string',
+            'deskripsi_foto2' => 'nullable|string',
+            'deskripsi_foto3' => 'nullable|string',
+            'deskripsi_foto4' => 'nullable|string',
+            'deskripsi_foto5' => 'nullable|string',
         ]);
         if (!$isAdmin) {
             unset($validated['status']);
@@ -150,6 +172,7 @@ class PressReleaseController extends Controller
         
         for ($i = 1; $i <= 5; $i++) {
             $key = "foto{$i}";
+            $descKey = "deskripsi_foto{$i}";
             if ($request->hasFile($key)) {
                 if ($foto && $foto->$key && file_exists(public_path('assets/images/press_release/' . $foto->$key))) {
                     unlink(public_path('assets/images/press_release/' . $foto->$key));
@@ -159,6 +182,9 @@ class PressReleaseController extends Controller
                 $filename = time() . "_{$i}_" . $file->getClientOriginalName();
                 $file->move(public_path('assets/images/press_release'), $filename);
                 $fotoData[$key] = $filename;
+            }
+            if ($request->filled($descKey)) {
+                $fotoData[$descKey] = $request->input($descKey);
             }
         }
 

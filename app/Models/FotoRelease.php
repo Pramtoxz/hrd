@@ -19,6 +19,11 @@ class FotoRelease extends Model
         'foto3',
         'foto4',
         'foto5',
+        'deskripsi_foto1',
+        'deskripsi_foto2',
+        'deskripsi_foto3',
+        'deskripsi_foto4',
+        'deskripsi_foto5',
     ];
 
     public function Release(): BelongsTo
