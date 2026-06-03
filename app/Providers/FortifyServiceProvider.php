@@ -4,8 +4,12 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Models\User;
+use App\Services\ExternalApiService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -15,42 +19,69 @@ use Laravel\Fortify\Fortify;
 
 class FortifyServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
-    public function register(): void
-    {
-        //
-    }
+    public function register(): void {}
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         $this->configureActions();
+        $this->configureAuthentication();
         $this->configureViews();
         $this->configureRateLimiting();
     }
 
-    /**
-     * Configure Fortify actions.
-     */
+    private function configureAuthentication(): void
+    {
+        Fortify::authenticateUsing(function (Request $request) {
+            $email     = $request->email;
+            $password  = $request->password;
+            $localUser = User::where('email', $email)->first();
+
+            if (!$localUser) {
+                return null;
+            }
+
+            if ($localUser->userLevel?->kode_level !== 'kacab') {
+                return Hash::check($password, $localUser->password) ? $localUser : null;
+            }
+
+            try {
+                $service = new ExternalApiService();
+                $apiData = $service->authenticate($email, $password);
+
+                if (!($apiData['is_kacab'] ?? false)) {
+                    Log::warning('Kacab login rejected: is_kacab=false for ' . $email);
+                    return null;
+                }
+
+                $cabang  = $service->resolveCabang($apiData['fk_dealer'] ?? '');
+                $updates = ['name' => $apiData['username']];
+
+                if ($cabang) {
+                    $updates['cabang'] = $cabang;
+                }
+
+                $localUser->update($updates);
+
+                return $localUser;
+            } catch (\Exception $e) {
+                Log::error('Kacab external auth failed for ' . $email . ': ' . $e->getMessage());
+                return null;
+            }
+        });
+    }
+
     private function configureActions(): void
     {
         Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::createUsersUsing(CreateNewUser::class);
     }
 
-    /**
-     * Configure Fortify views.
-     */
     private function configureViews(): void
     {
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
             'canResetPassword' => Features::enabled(Features::resetPasswords()),
-            'canRegister' => Features::enabled(Features::registration()),
-            'status' => $request->session()->get('status'),
+            'canRegister'      => Features::enabled(Features::registration()),
+            'status'           => $request->session()->get('status'),
         ]));
 
         Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [
@@ -73,9 +104,6 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password'));
     }
 
-    /**
-     * Configure rate limiting.
-     */
     private function configureRateLimiting(): void
     {
         RateLimiter::for('two-factor', function (Request $request) {
@@ -84,7 +112,6 @@ class FortifyServiceProvider extends ServiceProvider
 
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())).'|'.$request->ip());
-
             return Limit::perMinute(5)->by($throttleKey);
         });
     }

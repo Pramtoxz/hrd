@@ -11,6 +11,7 @@ use App\Http\Controllers\PressReleaseController;
 use App\Http\Controllers\ReleaseController;
 use App\Http\Controllers\ArticleController;
 use App\Http\Controllers\BukuTamuController;
+use App\Http\Controllers\PengajuanBanController;
 
 Route::get('/cek/qrcode/{id}', [AsetController::class, 'lihat'])->name('cek.qrcode');
 Route::get('/qrcode/aset/{id}', [AsetController::class, 'getQrCode'])->name('qrcode.aset');
@@ -18,6 +19,7 @@ Route::get('/qrcode/aset/{id}', [AsetController::class, 'getQrCode'])->name('qrc
 // Public Guest Book Route
 Route::get('/tamu', [BukuTamuController::class, 'publicForm'])->name('tamu.form');
 Route::post('/tamu', [BukuTamuController::class, 'publicStore'])->name('tamu.store');
+
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -45,6 +47,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('release/{release}/toggle-status', [ReleaseController::class, 'toggleStatus'])->name('release.toggle-status');
         Route::resource('bukutamu', BukuTamuController::class);
         Route::patch('bukutamu/{bukutamu}/toggle-status', [BukuTamuController::class, 'toggleStatus'])->name('bukutamu.toggle-status');
+
+        Route::resource('pengajuan-ban', PengajuanBanController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
+        Route::post('pengajuan-ban/{pengajuanBan}/setuju', [PengajuanBanController::class, 'setuju'])->name('pengajuan-ban.setuju');
+        Route::post('pengajuan-ban/{pengajuanBan}/tolak', [PengajuanBanController::class, 'tolak'])->name('pengajuan-ban.tolak');
+        Route::post('pengajuan-ban/{pengajuanBan}/selesaikan', [PengajuanBanController::class, 'selesaikan'])->name('pengajuan-ban.selesaikan');
+        Route::post('pengajuan-ban/{pengajuanBan}/finish', [PengajuanBanController::class, 'finish'])->name('pengajuan-ban.finish');
+        Route::get('pengajuan-ban-export', [PengajuanBanController::class, 'export'])->name('pengajuan-ban.export');
     });
 });
 

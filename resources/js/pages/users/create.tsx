@@ -17,6 +17,7 @@ import Swal from 'sweetalert2';
 interface UserLevel {
     id: number;
     nama_level: string;
+    kode_level: string;
 }
 
 interface Props {
@@ -36,6 +37,11 @@ export default function UsersCreate({ userLevels }: Props) {
         password: '',
         user_level_id: '',
     });
+
+    const selectedLevel = userLevels.find(
+        (l) => l.id.toString() === data.user_level_id,
+    );
+    const isKacab = selectedLevel?.kode_level === 'kacab';
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -76,11 +82,15 @@ export default function UsersCreate({ userLevels }: Props) {
                             <Input
                                 id="name"
                                 value={data.name}
-                                onChange={(e) => setData('name', e.target.value)}
+                                onChange={(e) =>
+                                    setData('name', e.target.value)
+                                }
                                 required
                             />
                             {errors.name && (
-                                <p className="text-sm text-red-500">{errors.name}</p>
+                                <p className="text-sm text-red-500">
+                                    {errors.name}
+                                </p>
                             )}
                         </div>
 
@@ -90,47 +100,69 @@ export default function UsersCreate({ userLevels }: Props) {
                                 id="email"
                                 type="email"
                                 value={data.email}
-                                onChange={(e) => setData('email', e.target.value)}
+                                onChange={(e) =>
+                                    setData('email', e.target.value)
+                                }
                                 required
                             />
                             {errors.email && (
-                                <p className="text-sm text-red-500">{errors.email}</p>
+                                <p className="text-sm text-red-500">
+                                    {errors.email}
+                                </p>
                             )}
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="password">Password</Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                value={data.password}
-                                onChange={(e) => setData('password', e.target.value)}
-                                required
-                            />
-                            {errors.password && (
-                                <p className="text-sm text-red-500">{errors.password}</p>
-                            )}
-                        </div>
+                        {isKacab ? (
+                            <div className="rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                                Password akan dikonfirmasi oleh DMS saat login.
+                                Tidak perlu diisi.
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                <Label htmlFor="password">Password</Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    value={data.password}
+                                    onChange={(e) =>
+                                        setData('password', e.target.value)
+                                    }
+                                    required={!isKacab}
+                                />
+                                {errors.password && (
+                                    <p className="text-sm text-red-500">
+                                        {errors.password}
+                                    </p>
+                                )}
+                            </div>
+                        )}
 
                         <div className="space-y-2">
                             <Label htmlFor="user_level_id">Level User</Label>
                             <Select
                                 value={data.user_level_id}
-                                onValueChange={(value) => setData('user_level_id', value)}
+                                onValueChange={(value) =>
+                                    setData('user_level_id', value)
+                                }
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Pilih Level User" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {userLevels.map((level) => (
-                                        <SelectItem key={level.id} value={level.id.toString()}>
+                                        <SelectItem
+                                            key={level.id}
+                                            value={level.id.toString()}
+                                        >
                                             {level.nama_level}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                             {errors.user_level_id && (
-                                <p className="text-sm text-red-500">{errors.user_level_id}</p>
+                                <p className="text-sm text-red-500">
+                                    {errors.user_level_id}
+                                </p>
                             )}
                         </div>
 

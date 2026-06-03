@@ -1,3 +1,4 @@
+import LogoMA from '@/assets/images/malogo.png';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -5,9 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/login';
-import { Form, Head } from '@inertiajs/react';
+import { Form } from '@inertiajs/react';
 import { LogIn } from 'lucide-react';
-import LogoMA from '@/assets/images/malogo.png'
 
 interface LoginProps {
     status?: string;
@@ -17,30 +17,34 @@ interface LoginProps {
 
 export default function Login({ status }: LoginProps) {
     return (
-        <>   
-            <div className="min-h-screen flex">
+        <>
+            <div className="flex min-h-screen">
                 {/* Left Side - Login Form */}
-                <div className="flex-1 flex items-center justify-center p-8 bg-white">
+                <div className="flex flex-1 items-center justify-center bg-white p-8">
                     <div className="w-full max-w-md space-y-8">
                         {/* Logo & Title */}
-                        <div className="text-center space-y-4">
+                        <div className="space-y-4 text-center">
                             <div className="flex justify-center">
-                                <div className="bg-white p-4 rounded-2xl shadow-lg">
-                                    <img 
-                                        src={LogoMA} 
-                                        alt="Honda Logo" 
+                                <div className="rounded-2xl bg-white p-4 shadow-lg">
+                                    <img
+                                        src={LogoMA}
+                                        alt="Honda Logo"
                                         className="h-16 w-16"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">PT. Menara Agung</h1>
-                                <p className="text-gray-600 mt-2">Sistem Manajemen HRD</p>
+                                <h1 className="text-2xl font-bold text-gray-900">
+                                    PT. Menara Agung
+                                </h1>
+                                <p className="mt-2 text-gray-600">
+                                    Sistem Manajemen Public Relations
+                                </p>
                             </div>
                         </div>
 
                         {status && (
-                            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm text-center">
+                            <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-center text-sm text-green-700">
                                 {status}
                             </div>
                         )}
@@ -55,7 +59,10 @@ export default function Login({ status }: LoginProps) {
                                 <>
                                     <div className="space-y-4">
                                         <div className="space-y-2">
-                                            <Label htmlFor="email" className="text-gray-700 font-medium">
+                                            <Label
+                                                htmlFor="email"
+                                                className="font-medium text-gray-700"
+                                            >
                                                 Email
                                             </Label>
                                             <Input
@@ -66,14 +73,19 @@ export default function Login({ status }: LoginProps) {
                                                 autoFocus
                                                 tabIndex={1}
                                                 autoComplete="email"
-                                                placeholder="nama@email.com"
+                                                placeholder="nama@menara-agung.com"
                                                 className="h-12 text-base"
                                             />
-                                            <InputError message={errors.email} />
+                                            <InputError
+                                                message={errors.email}
+                                            />
                                         </div>
 
                                         <div className="space-y-2">
-                                            <Label htmlFor="password" className="text-gray-700 font-medium">
+                                            <Label
+                                                htmlFor="password"
+                                                className="font-medium text-gray-700"
+                                            >
                                                 Password
                                             </Label>
                                             <Input
@@ -86,7 +98,9 @@ export default function Login({ status }: LoginProps) {
                                                 placeholder="••••••••"
                                                 className="h-12 text-base"
                                             />
-                                            <InputError message={errors.password} />
+                                            <InputError
+                                                message={errors.password}
+                                            />
                                         </div>
 
                                         <div className="flex items-center space-x-2">
@@ -95,7 +109,10 @@ export default function Login({ status }: LoginProps) {
                                                 name="remember"
                                                 tabIndex={3}
                                             />
-                                            <Label htmlFor="remember" className="text-sm text-gray-600 cursor-pointer">
+                                            <Label
+                                                htmlFor="remember"
+                                                className="cursor-pointer text-sm text-gray-600"
+                                            >
                                                 Ingat saya
                                             </Label>
                                         </div>
@@ -103,7 +120,7 @@ export default function Login({ status }: LoginProps) {
 
                                     <Button
                                         type="submit"
-                                        className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary/90"
+                                        className="h-12 w-full bg-primary text-base font-semibold hover:bg-primary/90"
                                         tabIndex={4}
                                         disabled={processing}
                                         data-test="login-button"
@@ -126,7 +143,7 @@ export default function Login({ status }: LoginProps) {
 
                         {/* Footer */}
                         <div className="text-center text-sm text-gray-500">
-                            <p>© 2024 Honda. All rights reserved.</p>
+                            <p>© 2026 Honda. All rights reserved.</p>
                         </div>
                     </div>
                 </div>

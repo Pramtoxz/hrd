@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use \App\Models\User;
 use \App\Models\UserLevel;
 use Inertia\Inertia;
@@ -39,29 +40,32 @@ class UserController extends Controller
 
     public function create()
     {
-        // Exclude it_support from user level options
         $userLevels = UserLevel::where('status_aktif', true)
             ->where('kode_level', '!=', 'it_support')
-            ->get();
+            ->get(['id', 'nama_level', 'kode_level']);
         return Inertia::render('users/create', ['userLevels' => $userLevels]);
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:8',
-            'user_level_id' => 'required|exists:user_levels,id',
-        ]);
+        $userLevel = UserLevel::find($request->user_level_id);
+        $isKacab   = $userLevel && $userLevel->kode_level === 'kacab';
 
-        // Prevent creating user with it_support level
-        $userLevel = UserLevel::find($validated['user_level_id']);
         if ($userLevel && $userLevel->kode_level === 'it_support') {
             return redirect()->back()->withErrors(['user_level_id' => 'Tidak dapat membuat user dengan level IT Support']);
         }
 
-        $validated['password'] = bcrypt($validated['password']);
+        $validated = $request->validate([
+            'name'          => 'required|string|max:255',
+            'email'         => 'required|email|unique:users',
+            'password'      => $isKacab ? 'nullable' : 'required|min:8',
+            'user_level_id' => 'required|exists:user_levels,id',
+        ]);
+
+        $validated['password'] = $isKacab
+            ? bcrypt(Str::random(32))
+            : bcrypt($validated['password']);
+
         User::create($validated);
 
         return redirect()->route('users.index');
@@ -69,18 +73,17 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        // Prevent editing it_support
         if ($user->userLevel && $user->userLevel->kode_level === 'it_support') {
             return redirect()->route('users.index')->with('error', 'IT Support tidak dapat diedit');
         }
-        
-        // Exclude it_support from user level options
+
         $userLevels = UserLevel::where('status_aktif', true)
             ->where('kode_level', '!=', 'it_support')
-            ->get();
+            ->get(['id', 'nama_level', 'kode_level']);
+
         return Inertia::render('users/edit', [
-            'user' => $user->load('userLevel'),
-            'userLevels' => $userLevels
+            'user'       => $user->load('userLevel'),
+            'userLevels' => $userLevels,
         ]);
     }
 
