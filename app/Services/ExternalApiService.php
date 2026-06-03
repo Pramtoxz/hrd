@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\ExternalApiConfig;
+use Illuminate\Support\Facades\Log;
 
 class ExternalApiService
 {
@@ -50,6 +51,7 @@ class ExternalApiService
         $decoded = json_decode($body, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
+            Log::debug('ExternalApiService raw response', ['status' => $status, 'body' => substr($body, 0, 500)]);
             throw new \RuntimeException('Respons API tidak valid.');
         }
 
