@@ -17,7 +17,6 @@ import Swal from 'sweetalert2';
 interface UserLevel {
     id: number;
     nama_level: string;
-    kode_level: string;
 }
 
 interface Props {
@@ -37,11 +36,6 @@ export default function UsersCreate({ userLevels }: Props) {
         password: '',
         user_level_id: '',
     });
-
-    const selectedLevel = userLevels.find(
-        (l) => l.id.toString() === data.user_level_id,
-    );
-    const isKacab = selectedLevel?.kode_level === 'kacab';
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -112,30 +106,23 @@ export default function UsersCreate({ userLevels }: Props) {
                             )}
                         </div>
 
-                        {isKacab ? (
-                            <div className="rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-                                Password akan dikonfirmasi oleh DMS saat login.
-                                Tidak perlu diisi.
-                            </div>
-                        ) : (
-                            <div className="space-y-2">
-                                <Label htmlFor="password">Password</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    value={data.password}
-                                    onChange={(e) =>
-                                        setData('password', e.target.value)
-                                    }
-                                    required={!isKacab}
-                                />
-                                {errors.password && (
-                                    <p className="text-sm text-red-500">
-                                        {errors.password}
-                                    </p>
-                                )}
-                            </div>
-                        )}
+                        <div className="space-y-2">
+                            <Label htmlFor="password">Password</Label>
+                            <Input
+                                id="password"
+                                type="password"
+                                value={data.password}
+                                onChange={(e) =>
+                                    setData('password', e.target.value)
+                                }
+                                required
+                            />
+                            {errors.password && (
+                                <p className="text-sm text-red-500">
+                                    {errors.password}
+                                </p>
+                            )}
+                        </div>
 
                         <div className="space-y-2">
                             <Label htmlFor="user_level_id">Level User</Label>

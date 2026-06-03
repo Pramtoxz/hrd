@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use \App\Models\User;
 use \App\Models\UserLevel;
 use Inertia\Inertia;
@@ -49,7 +48,6 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $userLevel = UserLevel::find($request->user_level_id);
-        $isKacab   = $userLevel && $userLevel->kode_level === 'kacab';
 
         if ($userLevel && $userLevel->kode_level === 'it_support') {
             return redirect()->back()->withErrors(['user_level_id' => 'Tidak dapat membuat user dengan level IT Support']);
@@ -58,13 +56,11 @@ class UserController extends Controller
         $validated = $request->validate([
             'name'          => 'required|string|max:255',
             'email'         => 'required|email|unique:users',
-            'password'      => $isKacab ? 'nullable' : 'required|min:8',
+            'password'      => 'required|min:8',
             'user_level_id' => 'required|exists:user_levels,id',
         ]);
 
-        $validated['password'] = $isKacab
-            ? bcrypt(Str::random(32))
-            : bcrypt($validated['password']);
+        $validated['password'] = bcrypt($validated['password']);
 
         User::create($validated);
 

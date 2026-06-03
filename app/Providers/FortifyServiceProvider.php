@@ -4,12 +4,9 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
-use App\Models\User;
-use App\Services\ExternalApiService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -32,41 +29,13 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureAuthentication(): void
     {
         Fortify::authenticateUsing(function (Request $request) {
-            $email     = $request->email;
-            $password  = $request->password;
-            $localUser = User::where('email', $email)->first();
+            $user = \App\Models\User::where('email', $request->email)->first();
 
-            if (!$localUser) {
-                return null;
+            if ($user && Hash::check($request->password, $user->password)) {
+                return $user;
             }
 
-            if ($localUser->userLevel?->kode_level !== 'kacab') {
-                return Hash::check($password, $localUser->password) ? $localUser : null;
-            }
-
-            try {
-                $service = new ExternalApiService();
-                $apiData = $service->authenticate($email, $password);
-
-                if (!($apiData['is_kacab'] ?? false)) {
-                    Log::warning('Kacab login rejected: is_kacab=false for ' . $email);
-                    return null;
-                }
-
-                $cabang  = $service->resolveCabang($apiData['fk_dealer'] ?? '');
-                $updates = ['name' => $apiData['username']];
-
-                if ($cabang) {
-                    $updates['cabang'] = $cabang;
-                }
-
-                $localUser->update($updates);
-
-                return $localUser;
-            } catch (\Exception $e) {
-                Log::error('Kacab external auth failed for ' . $email . ': ' . $e->getMessage());
-                return null;
-            }
+            return null;
         });
     }
 
