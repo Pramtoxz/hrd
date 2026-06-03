@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Models\ExternalApiConfig;
-use Illuminate\Support\Facades\Log;
 
 class ExternalApiService
 {
@@ -35,6 +34,9 @@ class ExternalApiService
             CURLOPT_CONNECTTIMEOUT => 5,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS      => 5,
+            CURLOPT_POSTREDIR      => CURL_REDIR_POST_ALL,
         ]);
 
         $body   = curl_exec($ch);
@@ -51,7 +53,6 @@ class ExternalApiService
         $decoded = json_decode($body, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            Log::debug('ExternalApiService raw response', ['status' => $status, 'body' => substr($body, 0, 500)]);
             throw new \RuntimeException('Respons API tidak valid.');
         }
 
