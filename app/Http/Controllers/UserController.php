@@ -9,6 +9,7 @@ use Inertia\Inertia;
 
 class UserController extends Controller
 {
+    private const CABANG_LIST = ['MD', 'Part', 'MA Veteran', 'MA IB', 'MA SPH', 'MA PYK', 'MA Padang Panjang'];
     public function index(Request $request)
     {
         $search = $request->input('search');
@@ -42,12 +43,17 @@ class UserController extends Controller
         $userLevels = UserLevel::where('status_aktif', true)
             ->where('kode_level', '!=', 'it_support')
             ->get(['id', 'nama_level', 'kode_level']);
-        return Inertia::render('users/create', ['userLevels' => $userLevels]);
+
+        return Inertia::render('users/create', [
+            'userLevels' => $userLevels,
+            'cabangList' => self::CABANG_LIST,
+        ]);
     }
 
     public function store(Request $request)
     {
         $userLevel = UserLevel::find($request->user_level_id);
+        $isKacab   = $userLevel && $userLevel->kode_level === 'kacab';
 
         if ($userLevel && $userLevel->kode_level === 'it_support') {
             return redirect()->back()->withErrors(['user_level_id' => 'Tidak dapat membuat user dengan level IT Support']);
@@ -58,6 +64,7 @@ class UserController extends Controller
             'email'         => 'required|email|unique:users',
             'password'      => 'required|min:8',
             'user_level_id' => 'required|exists:user_levels,id',
+            'cabang'        => $isKacab ? 'required|string' : 'nullable',
         ]);
 
         $validated['password'] = bcrypt($validated['password']);
@@ -80,6 +87,7 @@ class UserController extends Controller
         return Inertia::render('users/edit', [
             'user'       => $user->load('userLevel'),
             'userLevels' => $userLevels,
+            'cabangList' => self::CABANG_LIST,
         ]);
     }
 
@@ -90,15 +98,18 @@ class UserController extends Controller
             return redirect()->route('users.index')->with('error', 'IT Support tidak dapat diupdate');
         }
         
+        $userLevel = UserLevel::find($request->user_level_id);
+        $isKacab   = $userLevel && $userLevel->kode_level === 'kacab';
+
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|min:8',
+            'name'          => 'required|string|max:255',
+            'email'         => 'required|email|unique:users,email,' . $user->id,
+            'password'      => 'nullable|min:8',
             'user_level_id' => 'required|exists:user_levels,id',
+            'cabang'        => $isKacab ? 'required|string' : 'nullable',
         ]);
 
         // Prevent updating to it_support level
-        $userLevel = UserLevel::find($validated['user_level_id']);
         if ($userLevel && $userLevel->kode_level === 'it_support') {
             return redirect()->back()->withErrors(['user_level_id' => 'Tidak dapat mengubah user menjadi IT Support']);
         }

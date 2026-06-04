@@ -17,6 +17,7 @@ import Swal from 'sweetalert2';
 interface UserLevel {
     id: number;
     nama_level: string;
+    kode_level: string;
 }
 
 interface User {
@@ -24,11 +25,13 @@ interface User {
     name: string;
     email: string;
     user_level_id: number;
+    cabang: string | null;
 }
 
 interface Props {
     user: User;
     userLevels: UserLevel[];
+    cabangList: string[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -37,13 +40,17 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Edit User', href: '#' },
 ];
 
-export default function UsersEdit({ user, userLevels }: Props) {
+export default function UsersEdit({ user, userLevels, cabangList }: Props) {
     const { data, setData, put, processing, errors } = useForm({
         name: user.name,
         email: user.email,
         password: '',
         user_level_id: user.user_level_id.toString(),
+        cabang: user.cabang ?? '',
     });
+
+    const selectedLevel = userLevels.find((l) => l.id.toString() === data.user_level_id);
+    const isKacab = selectedLevel?.kode_level === 'kacab';
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -161,6 +168,28 @@ export default function UsersEdit({ user, userLevels }: Props) {
                                 </p>
                             )}
                         </div>
+
+                        {isKacab && (
+                            <div className="space-y-2">
+                                <Label htmlFor="cabang">Cabang</Label>
+                                <Select
+                                    value={data.cabang}
+                                    onValueChange={(value) => setData('cabang', value)}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Pilih Cabang" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {cabangList.map((c) => (
+                                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.cabang && (
+                                    <p className="text-sm text-red-500">{errors.cabang}</p>
+                                )}
+                            </div>
+                        )}
 
                         <div className="flex gap-2">
                             <Button type="submit" disabled={processing}>
