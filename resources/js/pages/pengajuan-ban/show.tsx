@@ -12,10 +12,11 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/react';
+import { compressImage, formatFileSize } from '@/utils/imageCompressor';
 import { Download, X } from 'lucide-react';
-import { useState } from 'react';
-import Swal from 'sweetalert2';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 
 interface PengajuanBan {
     id: number;
@@ -116,6 +117,67 @@ export default function PengajuanBanShow({ pengajuan, isAdmin }: Props) {
         foto_toko: [],
         kuitansi: null,
     });
+
+    const [previewsSesudah, setPreviewsSesudah] = useState<string[]>([]);
+    const [previewsToko, setPreviewsToko] = useState<string[]>([]);
+    const [previewKuitansi, setPreviewKuitansi] = useState<string | null>(null);
+
+    const handleFotoAdd = async (
+        e: React.ChangeEvent<HTMLInputElement>,
+        index: number,
+        field: 'foto_sesudah' | 'foto_toko',
+        setPreviews: React.Dispatch<React.SetStateAction<string[]>>,
+    ) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const loadingToast = toast.loading(`Memproses ${file.name} (${formatFileSize(file.size)})...`);
+        try {
+            const compressed = await compressImage(file, 1.9, 3840);
+            toast.dismiss(loadingToast);
+            if (compressed.size < file.size) {
+                toast.success(`Foto dikompres: ${formatFileSize(file.size)} → ${formatFileSize(compressed.size)}`);
+            }
+            const newFiles = [...selesaikanForm.data[field]];
+            newFiles[index] = compressed;
+            selesaikanForm.setData(field, newFiles);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviews(prev => { const u = [...prev]; u[index] = reader.result as string; return u; });
+            };
+            reader.readAsDataURL(compressed);
+        } catch {
+            toast.dismiss(loadingToast);
+            toast.error('Gagal memproses foto.');
+        }
+        e.target.value = '';
+    };
+
+    const handleFotoRemove = (
+        index: number,
+        field: 'foto_sesudah' | 'foto_toko',
+        setPreviews: React.Dispatch<React.SetStateAction<string[]>>,
+    ) => {
+        selesaikanForm.setData(field, selesaikanForm.data[field].filter((_, i) => i !== index));
+        setPreviews(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleKuitansiChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const loadingToast = toast.loading(`Memproses ${file.name}...`);
+        try {
+            const compressed = await compressImage(file, 1.9, 3840);
+            toast.dismiss(loadingToast);
+            selesaikanForm.setData('kuitansi', compressed);
+            const reader = new FileReader();
+            reader.onloadend = () => setPreviewKuitansi(reader.result as string);
+            reader.readAsDataURL(compressed);
+        } catch {
+            toast.dismiss(loadingToast);
+            toast.error('Gagal memproses foto.');
+        }
+        e.target.value = '';
+    };
 
     const formatDate = (d: string | null) =>
         d ? new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '-';
@@ -388,16 +450,28 @@ export default function PengajuanBanShow({ pengajuan, isAdmin }: Props) {
                     <form onSubmit={handleSelesaikan} className="space-y-4">
                         <div className="space-y-2">
                             <Label>Foto Kondisi Ban Sesudah * (maks. 6 foto)</Label>
-                            <Input
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                onChange={(e) => {
-                                    const files = Array.from(e.target.files ?? []).slice(0, 6);
-                                    selesaikanForm.setData('foto_sesudah', files);
-                                }}
-                                required
-                            />
+                            <div className="grid grid-cols-3 gap-2">
+                                {Array.from({ length: 6 }).map((_, i) => (
+                                    <div key={i} className="aspect-square rounded-lg border-2 border-dashed overflow-hidden">
+                                        {previewsSesudah[i] ? (
+                                            <div className="relative h-full">
+                                                <img src={previewsSesudah[i]} alt={`Sesudah ${i + 1}`} className="h-full w-full object-cover" />
+                                                <Button type="button" variant="destructive" size="sm" className="absolute right-1 top-1 h-6 w-6 p-0"
+                                                    onClick={() => handleFotoRemove(i, 'foto_sesudah', setPreviewsSesudah)}>
+                                                    <X className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <label className="flex h-full cursor-pointer flex-col items-center justify-center gap-1 text-muted-foreground hover:bg-muted/30">
+                                                <span className="text-xl">+</span>
+                                                <span className="text-xs">{i + 1}</span>
+                                                <Input type="file" accept="image/*" className="hidden"
+                                                    onChange={(e) => handleFotoAdd(e, i, 'foto_sesudah', setPreviewsSesudah)} />
+                                            </label>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                             {selesaikanForm.errors.foto_sesudah && (
                                 <p className="text-sm text-red-500">{selesaikanForm.errors.foto_sesudah}</p>
                             )}
@@ -405,15 +479,28 @@ export default function PengajuanBanShow({ pengajuan, isAdmin }: Props) {
 
                         <div className="space-y-2">
                             <Label>Foto dari Toko Ban / Fulkanisir (maks. 6 foto)</Label>
-                            <Input
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                onChange={(e) => {
-                                    const files = Array.from(e.target.files ?? []).slice(0, 6);
-                                    selesaikanForm.setData('foto_toko', files);
-                                }}
-                            />
+                            <div className="grid grid-cols-3 gap-2">
+                                {Array.from({ length: 6 }).map((_, i) => (
+                                    <div key={i} className="aspect-square rounded-lg border-2 border-dashed overflow-hidden">
+                                        {previewsToko[i] ? (
+                                            <div className="relative h-full">
+                                                <img src={previewsToko[i]} alt={`Toko ${i + 1}`} className="h-full w-full object-cover" />
+                                                <Button type="button" variant="destructive" size="sm" className="absolute right-1 top-1 h-6 w-6 p-0"
+                                                    onClick={() => handleFotoRemove(i, 'foto_toko', setPreviewsToko)}>
+                                                    <X className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <label className="flex h-full cursor-pointer flex-col items-center justify-center gap-1 text-muted-foreground hover:bg-muted/30">
+                                                <span className="text-xl">+</span>
+                                                <span className="text-xs">{i + 1}</span>
+                                                <Input type="file" accept="image/*" className="hidden"
+                                                    onChange={(e) => handleFotoAdd(e, i, 'foto_toko', setPreviewsToko)} />
+                                            </label>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                             {selesaikanForm.errors.foto_toko && (
                                 <p className="text-sm text-red-500">{selesaikanForm.errors.foto_toko}</p>
                             )}
@@ -421,12 +508,17 @@ export default function PengajuanBanShow({ pengajuan, isAdmin }: Props) {
 
                         <div className="space-y-2">
                             <Label>Kuitansi dari Toko *</Label>
-                            <Input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => selesaikanForm.setData('kuitansi', e.target.files?.[0] ?? null)}
-                                required
-                            />
+                            {previewKuitansi ? (
+                                <div className="relative w-full">
+                                    <img src={previewKuitansi} alt="Kuitansi" className="h-32 w-full rounded-lg border object-cover" />
+                                    <Button type="button" variant="destructive" size="sm" className="absolute right-1 top-1 h-6 w-6 p-0"
+                                        onClick={() => { selesaikanForm.setData('kuitansi', null); setPreviewKuitansi(null); }}>
+                                        <X className="h-3 w-3" />
+                                    </Button>
+                                </div>
+                            ) : (
+                                <Input type="file" accept="image/*" onChange={handleKuitansiChange} required />
+                            )}
                             {selesaikanForm.errors.kuitansi && (
                                 <p className="text-sm text-red-500">{selesaikanForm.errors.kuitansi}</p>
                             )}

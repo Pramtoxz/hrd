@@ -2,12 +2,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { compressImage, formatFileSize } from '@/utils/imageCompressor';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
-import { useState } from 'react';
-import Swal from 'sweetalert2';
+import { X } from 'lucide-react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
+import Swal from 'sweetalert2';
 
 interface Props {
     cabang: string;
@@ -66,8 +68,11 @@ function CheckboxGroup({
     );
 }
 
+const MAX_FOTO = 6;
+
 export default function PengajuanBanCreate({ cabang }: Props) {
     const [jenisPengajuan, setJenisPengajuan] = useState<'ban' | 'fulkanisir' | ''>('');
+    const [fotoPreviews, setFotoPreviews] = useState<string[]>([]);
 
     const { data, setData, post, processing, errors } = useForm<{
         tanggal_pengajuan: string;
@@ -102,6 +107,44 @@ export default function PengajuanBanCreate({ cabang }: Props) {
     const handleJenisChange = (v: 'ban' | 'fulkanisir') => {
         setJenisPengajuan(v);
         setData('jenis_pengajuan', v);
+    };
+
+    const handleFotoAdd = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const originalSize = formatFileSize(file.size);
+        const loadingToast = toast.loading(`Memproses ${file.name} (${originalSize})...`);
+        try {
+            const compressed = await compressImage(file, 1.9, 3840);
+            toast.dismiss(loadingToast);
+            if (compressed.size < file.size) {
+                toast.success(`Foto dikompres: ${originalSize} → ${formatFileSize(compressed.size)}`);
+            }
+
+            const newFiles = [...data.foto_sebelum];
+            newFiles[index] = compressed;
+            setData('foto_sebelum', newFiles);
+
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFotoPreviews(prev => {
+                    const updated = [...prev];
+                    updated[index] = reader.result as string;
+                    return updated;
+                });
+            };
+            reader.readAsDataURL(compressed);
+        } catch {
+            toast.dismiss(loadingToast);
+            toast.error('Gagal memproses foto.');
+        }
+        e.target.value = '';
+    };
+
+    const handleFotoRemove = (index: number) => {
+        setData('foto_sebelum', data.foto_sebelum.filter((_, i) => i !== index));
+        setFotoPreviews(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -383,25 +426,40 @@ export default function PengajuanBanCreate({ cabang }: Props) {
                     {jenisPengajuan && (
                         <div className="rounded-lg border p-6 space-y-4">
                             <h2 className="text-lg font-semibold border-b pb-2">Lampiran</h2>
-                            <div className="space-y-2">
-                                <Label htmlFor="foto_sebelum">
-                                    Foto Kondisi Ban Sebelum Diganti / Fulkanisir * (maks. 6 foto)
-                                </Label>
-                                <Input
-                                    id="foto_sebelum"
-                                    type="file"
-                                    accept="image/*"
-                                    multiple
-                                    onChange={(e) => {
-                                        const files = Array.from(e.target.files ?? []).slice(0, 6);
-                                        setData('foto_sebelum', files);
-                                    }}
-                                    required
-                                />
-                                <p className="text-xs text-muted-foreground">Format: JPG, PNG, WEBP. Maks. 5MB per foto, maks. 6 foto.</p>
-                                {data.foto_sebelum.length > 0 && (
-                                    <p className="text-xs text-green-600">{data.foto_sebelum.length} foto dipilih</p>
-                                )}
+                            <div className="space-y-3">
+                                <Label>Foto Kondisi Ban Sebelum Diganti / Fulkanisir * (maks. {MAX_FOTO} foto)</Label>
+                                <div className="grid grid-cols-3 gap-3">
+                                    {Array.from({ length: MAX_FOTO }).map((_, i) => (
+                                        <div key={i} className="aspect-square rounded-lg border-2 border-dashed overflow-hidden">
+                                            {fotoPreviews[i] ? (
+                                                <div className="relative h-full">
+                                                    <img src={fotoPreviews[i]} alt={`Foto ${i + 1}`} className="h-full w-full object-cover" />
+                                                    <Button
+                                                        type="button"
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        className="absolute right-1 top-1 h-6 w-6 p-0"
+                                                        onClick={() => handleFotoRemove(i)}
+                                                    >
+                                                        <X className="h-3 w-3" />
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <label className="flex h-full cursor-pointer flex-col items-center justify-center gap-1 text-muted-foreground hover:bg-muted/30">
+                                                    <span className="text-xl">+</span>
+                                                    <span className="text-xs">Foto {i + 1}</span>
+                                                    <Input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        onChange={(e) => handleFotoAdd(e, i)}
+                                                    />
+                                                </label>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                                <p className="text-xs text-muted-foreground">Format: JPG, PNG, WEBP. Maks. 2MB per foto, otomatis dikompres.</p>
                                 {errors.foto_sebelum && (
                                     <p className="text-sm text-red-500">{errors.foto_sebelum}</p>
                                 )}
