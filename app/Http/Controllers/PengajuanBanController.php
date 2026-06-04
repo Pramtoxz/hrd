@@ -118,14 +118,22 @@ class PengajuanBanController extends Controller
             'jumlah_ban'               => 'required|integer|min:1',
             'ukuran_ban'               => 'required|string|max:50',
             'alasan_penggantian'       => 'nullable|required_if:jenis_pengajuan,ban|string',
-            'foto_sebelum'             => 'required|image|max:5120',
+            'foto_sebelum'   => 'required|array|min:1|max:6',
+            'foto_sebelum.*' => 'image|max:5120',
         ]);
+
+        $fotoSebelum = [];
+        foreach ($request->file('foto_sebelum', []) as $i => $file) {
+            $filename      = time() . '_before_' . $i . '_' . $file->getClientOriginalName();
+            $file->move(public_path(self::STORAGE_PATH), $filename);
+            $fotoSebelum[] = $filename;
+        }
 
         $base['user_id']      = $authUser->id;
         $base['kacab_email']  = $authUser->email;
         $base['cabang']       = $authUser->cabang;
         $base['status']       = 'pending';
-        $base['foto_sebelum'] = $this->saveFile($request, 'foto_sebelum', 'before');
+        $base['foto_sebelum'] = $fotoSebelum;
 
         PengajuanBan::create($base);
 
@@ -162,7 +170,9 @@ class PengajuanBanController extends Controller
             abort(403);
         }
 
-        $this->deleteFile($pengajuanBan->foto_sebelum);
+        foreach ($pengajuanBan->foto_sebelum ?? [] as $f) {
+            $this->deleteFile($f);
+        }
         $this->deleteFile($pengajuanBan->pdf_persetujuan);
         $this->deleteFile($pengajuanBan->kuitansi);
 

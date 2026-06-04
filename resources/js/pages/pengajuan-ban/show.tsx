@@ -32,7 +32,7 @@ interface PengajuanBan {
     jumlah_ban: number;
     ukuran_ban: string;
     alasan_penggantian: string | null;
-    foto_sebelum: string | null;
+    foto_sebelum: string[] | null;
     pdf_persetujuan: string | null;
     foto_sesudah: string[] | null;
     foto_toko: string[] | null;
@@ -234,10 +234,14 @@ export default function PengajuanBanShow({ pengajuan, isAdmin }: Props) {
 
                     <div className="rounded-lg border p-6 space-y-4">
                         <h2 className="font-semibold text-base border-b pb-2">Lampiran</h2>
-                        {pengajuan.foto_sebelum && (
+                        {(pengajuan.foto_sebelum ?? []).length > 0 && (
                             <div className="space-y-2">
                                 <p className="text-sm text-muted-foreground">Foto Kondisi Ban Sebelum</p>
-                                <ImagePreview src={imgUrl(pengajuan.foto_sebelum)} alt="Foto Sebelum" />
+                                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                                    {pengajuan.foto_sebelum!.map((f, i) => (
+                                        <ImagePreview key={i} src={imgUrl(f)} alt={`Foto Sebelum ${i + 1}`} />
+                                    ))}
+                                </div>
                             </div>
                         )}
 

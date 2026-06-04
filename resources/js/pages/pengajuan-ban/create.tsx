@@ -82,7 +82,7 @@ export default function PengajuanBanCreate({ cabang }: Props) {
         jumlah_ban: string;
         ukuran_ban: string;
         alasan_penggantian: string;
-        foto_sebelum: File | null;
+        foto_sebelum: File[];
     }>({
         tanggal_pengajuan: new Date().toISOString().split('T')[0],
         nama_driver: '',
@@ -96,7 +96,7 @@ export default function PengajuanBanCreate({ cabang }: Props) {
         jumlah_ban: '',
         ukuran_ban: '',
         alasan_penggantian: '',
-        foto_sebelum: null,
+        foto_sebelum: [],
     });
 
     const handleJenisChange = (v: 'ban' | 'fulkanisir') => {
@@ -385,16 +385,23 @@ export default function PengajuanBanCreate({ cabang }: Props) {
                             <h2 className="text-lg font-semibold border-b pb-2">Lampiran</h2>
                             <div className="space-y-2">
                                 <Label htmlFor="foto_sebelum">
-                                    Foto Kondisi Ban Sebelum Diganti / Fulkanisir *
+                                    Foto Kondisi Ban Sebelum Diganti / Fulkanisir * (maks. 6 foto)
                                 </Label>
                                 <Input
                                     id="foto_sebelum"
                                     type="file"
                                     accept="image/*"
-                                    onChange={(e) => setData('foto_sebelum', e.target.files?.[0] ?? null)}
+                                    multiple
+                                    onChange={(e) => {
+                                        const files = Array.from(e.target.files ?? []).slice(0, 6);
+                                        setData('foto_sebelum', files);
+                                    }}
                                     required
                                 />
-                                <p className="text-xs text-muted-foreground">Format: JPG, PNG, WEBP. Maks. 5MB</p>
+                                <p className="text-xs text-muted-foreground">Format: JPG, PNG, WEBP. Maks. 5MB per foto, maks. 6 foto.</p>
+                                {data.foto_sebelum.length > 0 && (
+                                    <p className="text-xs text-green-600">{data.foto_sebelum.length} foto dipilih</p>
+                                )}
                                 {errors.foto_sebelum && (
                                     <p className="text-sm text-red-500">{errors.foto_sebelum}</p>
                                 )}

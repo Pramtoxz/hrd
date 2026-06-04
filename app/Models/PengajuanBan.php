@@ -39,6 +39,7 @@ class PengajuanBan extends Model
         'tgl_penggantian_terakhir' => 'date',
         'posisi_ban_sebelumnya' => 'array',
         'posisi_ban_diajukan' => 'array',
+        'foto_sebelum' => 'array',
         'foto_sesudah' => 'array',
         'foto_toko' => 'array',
     ];
